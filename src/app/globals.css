@@ -558,7 +558,7 @@ footer {
   nav {
     gap: 10px;
   }
-  nav a:first-child {
+  .site-header nav a:first-child {
     display: none;
   }
   .hero {
