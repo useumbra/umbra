@@ -26,7 +26,7 @@ export function BoundaryArt() {
         </clipPath>
       </defs>
 
-      {rawTokens.map((token) => (
+      {rawTokens.map((token, index) => (
         <g key={token.label}>
           <rect
             x={8}
@@ -39,6 +39,7 @@ export function BoundaryArt() {
           <path
             d={`M ${token.width + 18} ${token.y + 9} H 268`}
             className="art-wire"
+            style={{ animationDelay: `${index * 0.35}s` }}
           />
         </g>
       ))}
@@ -63,9 +64,13 @@ export function BoundaryArt() {
         />
       </g>
 
-      {cleanTokens.map((token) => (
+      {cleanTokens.map((token, index) => (
         <g key={token.y}>
-          <path d={`M 332 ${token.y + 9} H 420`} className="art-wire" />
+          <path
+            d={`M 332 ${token.y + 9} H 420`}
+            className="art-wire"
+            style={{ animationDelay: `${index * 0.35}s` }}
+          />
           <rect
             x={430}
             y={token.y}
@@ -77,8 +82,15 @@ export function BoundaryArt() {
           <path
             d={`M ${430 + token.width + 10} ${token.y + 9} H 574`}
             className="art-wire"
+            style={{ animationDelay: `${index * 0.35}s` }}
           />
-          <circle cx={592} cy={token.y + 9} r={9} className="art-node" />
+          <circle
+            cx={592}
+            cy={token.y + 9}
+            r={9}
+            className="art-node"
+            style={{ animationDelay: `${index * 0.28}s` }}
+          />
         </g>
       ))}
 
