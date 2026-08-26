@@ -9,6 +9,7 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   redacted?: string;
+  error?: string;
   receipt?: import("./privacy").Receipt;
   route?: { model: string; reason: string };
   attachments?: AttachmentMetadata[];

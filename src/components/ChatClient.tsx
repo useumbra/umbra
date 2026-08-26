@@ -39,20 +39,46 @@ export function ChatClient() {
   const [search, setSearch] = useState("");
   const [transferMessage, setTransferMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [renamingId, setRenamingId] = useState<string>();
+  const [renameValue, setRenameValue] = useState("");
+  const [copiedId, setCopiedId] = useState<string>();
+  const [atLatest, setAtLatest] = useState(true);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | undefined>(undefined);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const activeMessages = useMemo(() => active?.messages ?? [], [active]);
   useEffect(() => {
     void Promise.all([
       getConversations(),
       getSetting("mode", "smart" as const),
       getSetting("model", models[0].id),
-    ]).then(([items, savedMode, savedModel]) => {
+      getSetting("effort", "medium"),
+    ]).then(([items, savedMode, savedModel, savedEffort]) => {
       setConversations(items);
       setMode(savedMode);
       setModel(savedModel);
+      setEffort(savedEffort);
       if (items[0]) setActive(items[0]);
     });
   }, []);
+  useEffect(() => {
+    const element = messagesRef.current;
+    if (!element) return;
+    const update = () => {
+      setAtLatest(
+        element.scrollHeight - element.scrollTop - element.clientHeight < 80,
+      );
+    };
+    element.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => element.removeEventListener("scroll", update);
+  }, [active]);
+  useEffect(() => {
+    const element = messagesRef.current;
+    if (element && atLatest) element.scrollTop = element.scrollHeight;
+  }, [activeMessages, atLatest]);
   const start = () => {
     const next: Conversation = {
       id: id(),
@@ -62,6 +88,7 @@ export function ChatClient() {
     };
     setActive(next);
     setConversations((items) => [next, ...items]);
+    setSidebarOpen(false);
     void saveConversation(next);
   };
   const send = async () => {
@@ -127,13 +154,18 @@ export function ChatClient() {
       ...conversation,
       title: conversation.messages.length
         ? conversation.title
-        : draft.slice(0, 32),
+        : (
+            draft.trim() ||
+            attachments[0]?.file.name ||
+            "New conversation"
+          ).slice(0, 32),
       messages: [...conversation.messages, user],
       vault: vault.toJSON(),
     };
     setActive(next);
     setDraft("");
     setBusy(true);
+    abortRef.current = new AbortController();
     const assistant: ChatMessage = { id: id(), role: "assistant", content: "" };
     setActive({ ...next, messages: [...next.messages, assistant] });
     try {
@@ -164,7 +196,10 @@ export function ChatClient() {
           effort,
           messages: providerMessages,
         }),
+        signal: abortRef.current.signal,
       });
+      if (!response.ok)
+        throw new Error(`Provider returned HTTP ${response.status}`);
       if (!response.body) throw new Error("No stream");
       const routeModel = response.headers.get("X-Umbra-Route-Model");
       const routeReason = response.headers.get("X-Umbra-Route-Reason");
@@ -217,16 +252,46 @@ export function ChatClient() {
       ]);
       await saveConversation(finished);
       setAttachments([]);
-    } catch {
-      assistant.content =
-        "The provider could not be reached. Your draft stayed local.";
-      setActive({ ...next, messages: [...next.messages, assistant] });
+    } catch (error) {
+      assistant.error =
+        error instanceof DOMException && error.name === "AbortError"
+          ? "Response stopped before completion."
+          : "The provider could not be reached. Your draft stayed local.";
+      const failed = {
+        ...next,
+        messages: [...next.messages, { ...assistant }],
+        vault: vault.toJSON(),
+      };
+      setActive(failed);
+      setConversations((items) => [
+        failed,
+        ...items.filter((item) => item.id !== failed.id),
+      ]);
+      await saveConversation(failed);
     } finally {
       setBusy(false);
+      abortRef.current = undefined;
     }
   };
+  const stop = () => abortRef.current?.abort();
+  const jumpToLatest = () => {
+    const element = messagesRef.current;
+    if (!element) return;
+    element.scrollTop = element.scrollHeight;
+    setAtLatest(true);
+  };
+  const rename = async (conversation: Conversation) => {
+    const title = renameValue.trim();
+    if (!title) return;
+    const next = { ...conversation, title: title.slice(0, 80) };
+    await saveConversation(next);
+    setConversations((items) =>
+      items.map((item) => (item.id === next.id ? next : item)),
+    );
+    if (active?.id === next.id) setActive(next);
+    setRenamingId(undefined);
+  };
   const selectedModel = models.find((item) => item.id === model) ?? models[0];
-  const activeMessages = useMemo(() => active?.messages ?? [], [active]);
   const attachmentTextLength = attachments.reduce(
     (total, attachment) =>
       total +
@@ -304,11 +369,29 @@ export function ChatClient() {
   };
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {sidebarOpen && (
+        <button
+          className={styles.drawerBackdrop}
+          type="button"
+          aria-label="Close conversation drawer"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <aside
+        className={`sidebar ${sidebarOpen ? styles.sidebarOpen : ""}`}
+        id="conversation-sidebar"
+      >
         <Link href="/" className="wordmark">
           <span className="mark">◒</span>
           {brand.wordmark}
         </Link>
+        <button
+          className={styles.drawerClose}
+          type="button"
+          onClick={() => setSidebarOpen(false)}
+        >
+          Close
+        </button>
         <button className="active" onClick={start}>
           ＋ New conversation
         </button>
@@ -357,27 +440,69 @@ export function ChatClient() {
         </div>
         <div className={styles.conversationList}>
           {filteredConversations.map((conversation) => (
-            <button
-              className={
-                conversation.id === active?.id ? "conversation-active" : ""
-              }
-              key={conversation.id}
-              onClick={() => setActive(conversation)}
-              aria-current={conversation.id === active?.id ? "page" : undefined}
-            >
-              <span className="conversation-title">{conversation.title}</span>
-            </button>
+            <div className={styles.conversationRow} key={conversation.id}>
+              {renamingId === conversation.id ? (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void rename(conversation);
+                  }}
+                >
+                  <input
+                    className={styles.renameInput}
+                    value={renameValue}
+                    autoFocus
+                    onChange={(event) => setRenameValue(event.target.value)}
+                    onBlur={() => {
+                      if (renameValue.trim()) void rename(conversation);
+                      else setRenamingId(undefined);
+                    }}
+                    aria-label="Conversation title"
+                  />
+                </form>
+              ) : (
+                <button
+                  className={
+                    conversation.id === active?.id ? "conversation-active" : ""
+                  }
+                  onClick={() => {
+                    setActive(conversation);
+                    setSidebarOpen(false);
+                  }}
+                  aria-current={
+                    conversation.id === active?.id ? "page" : undefined
+                  }
+                >
+                  <span className="conversation-title">
+                    {conversation.title}
+                  </span>
+                </button>
+              )}
+              <button
+                className={styles.renameButton}
+                type="button"
+                aria-label={`Rename ${conversation.title}`}
+                onClick={() => {
+                  setRenamingId(conversation.id);
+                  setRenameValue(conversation.title);
+                }}
+              >
+                Rename
+              </button>
+            </div>
           ))}
         </div>
         {active && (
           <button
             style={{ marginTop: 20 }}
             onClick={() => {
+              if (!window.confirm("Delete this conversation?")) return;
               void deleteConversation(active.id);
               setConversations((items) =>
                 items.filter((item) => item.id !== active.id),
               );
               setActive(null);
+              setSidebarOpen(false);
             }}
           >
             Delete conversation
@@ -386,6 +511,15 @@ export function ChatClient() {
       </aside>
       <main className="chat-main">
         <div className="chat-top">
+          <button
+            className={styles.sidebarToggle}
+            type="button"
+            aria-expanded={sidebarOpen}
+            aria-controls="conversation-sidebar"
+            onClick={() => setSidebarOpen(true)}
+          >
+            Conversations
+          </button>
           <div>
             <strong>{brand.products.chat}</strong>
             <div className="note">Protected workspace · local vault</div>
@@ -408,7 +542,10 @@ export function ChatClient() {
               <select
                 aria-label="Reasoning effort"
                 value={effort}
-                onChange={(event) => setEffort(event.target.value)}
+                onChange={(event) => {
+                  setEffort(event.target.value);
+                  void saveSetting("effort", event.target.value);
+                }}
               >
                 <option value="low">Quick</option>
                 <option value="medium">Balanced</option>
@@ -417,7 +554,7 @@ export function ChatClient() {
             )}
           </div>
         </div>
-        <div className="messages">
+        <div className="messages" ref={messagesRef}>
           {!activeMessages.length && (
             <div style={{ padding: "20vh 0", textAlign: "center" }}>
               <div className="eyebrow">Local first</div>
@@ -439,6 +576,24 @@ export function ChatClient() {
               </div>
               <div className="message-bubble">
                 {message.content}
+                {message.error && (
+                  <p className={styles.messageError} role="alert">
+                    {message.error}
+                  </p>
+                )}
+                {message.role === "assistant" && message.content && (
+                  <button
+                    className={styles.copyButton}
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(message.content);
+                      setCopiedId(message.id);
+                      window.setTimeout(() => setCopiedId(undefined), 1600);
+                    }}
+                  >
+                    {copiedId === message.id ? "Copied" : "Copy"}
+                  </button>
+                )}
                 {message.role === "assistant" && message.route && (
                   <div className="note">
                     routed to{" "}
@@ -469,6 +624,11 @@ export function ChatClient() {
               </div>
             </div>
           ))}
+          {!atLatest && (
+            <button className={styles.jumpLatest} onClick={jumpToLatest}>
+              Jump to latest
+            </button>
+          )}
         </div>
         <div className="composer-wrap">
           <div className="composer">
@@ -522,13 +682,19 @@ export function ChatClient() {
                 }}
               />
             </label>
-            <button
-              className="send"
-              onClick={() => void send()}
-              disabled={busy}
-            >
-              {busy ? "…" : "Send"}
-            </button>
+            {busy ? (
+              <button className="send" onClick={stop} type="button">
+                Stop
+              </button>
+            ) : (
+              <button
+                className="send"
+                onClick={() => void send()}
+                disabled={!draft.trim() && !attachments.length}
+              >
+                Send
+              </button>
+            )}
             <div className="composer-meta">
               <label>
                 Privacy{" "}

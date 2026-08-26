@@ -1,24 +1,73 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { brand } from "@/config/brand";
 import { ThemeToggle } from "./ThemeToggle";
 export function Header() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [open]);
+  const destinations = [
+    ["/leak-check", "Leak check"],
+    ["/image", "Image"],
+    ["/video", "Video"],
+    ["/credits", "Credits"],
+    ["/developers", "Developers"],
+    [brand.appPath, `Open ${brand.products.chat}`],
+  ] as const;
   return (
     <header className="site-header">
       <Link href="/" className="wordmark">
         <span className="mark">◒</span>
         {brand.wordmark}
       </Link>
-      <nav>
-        <Link href="/leak-check">Leak check</Link>
-        <Link href="/image">Image</Link>
-        <Link href="/video">Video</Link>
-        <Link href="/credits">Credits</Link>
-        <Link href="/developers">Developers</Link>
-        <Link href={brand.appPath} className="nav-cta">
-          Open {brand.products.chat}
-        </Link>
+      <nav aria-label="Primary navigation">
+        {destinations.map(([href, label]) => (
+          <Link
+            href={href}
+            key={href}
+            className={href === brand.appPath ? "nav-cta" : undefined}
+          >
+            {label}
+          </Link>
+        ))}
         <ThemeToggle />
       </nav>
+      <button
+        className="menu-button"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded={open}
+        aria-controls="mobile-navigation"
+        onClick={() => setOpen((value) => !value)}
+      >
+        {open ? "×" : "☰"}
+      </button>
+      {open && (
+        <div className="mobile-navigation" id="mobile-navigation">
+          {destinations.map(([href, label]) => (
+            <Link href={href} key={href} onClick={() => setOpen(false)}>
+              {label}
+            </Link>
+          ))}
+          <div className="mobile-theme">
+            <span>Theme</span>
+            <ThemeToggle />
+          </div>
+        </div>
+      )}
     </header>
   );
 }

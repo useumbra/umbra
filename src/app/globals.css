@@ -518,3 +518,150 @@ footer {
     padding: 14px 15px 18px;
   }
 }
+
+.menu-button,
+.mobile-navigation {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .site-header {
+    position: relative;
+  }
+
+  .site-header nav {
+    display: none;
+  }
+
+  .menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .menu-button:focus-visible,
+  .mobile-navigation a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .mobile-navigation {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% - 8px);
+    right: 18px;
+    left: 18px;
+    display: grid;
+    gap: 4px;
+    padding: 10px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.25);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-navigation a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: var(--ink);
+    border-radius: 7px;
+  }
+
+  .mobile-navigation a:hover {
+    background: var(--panel);
+  }
+
+  .mobile-theme {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 0 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile-theme .icon-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-shell {
+    height: 100svh;
+    min-height: 100svh;
+    overflow: hidden;
+  }
+
+  .chat-main {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .chat-top {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 15px;
+  }
+
+  .chat-top > div:last-child {
+    width: 100%;
+    display: flex !important;
+    flex-wrap: wrap;
+  }
+
+  .chat-top select {
+    min-height: 44px;
+    min-width: 0;
+    flex: 1 1 150px;
+  }
+
+  .messages {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 28px 15px;
+  }
+
+  .composer-wrap {
+    padding: 12px 15px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .composer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .composer textarea {
+    flex: 1 1 100%;
+    min-height: 80px;
+    padding: 12px;
+  }
+
+  .composer .attachButton,
+  .composer .send {
+    position: static;
+    min-height: 44px;
+    margin: 0;
+  }
+
+  .composer-meta {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+    line-height: 1.5;
+  }
+}
