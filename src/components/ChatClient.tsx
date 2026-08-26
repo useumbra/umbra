@@ -524,7 +524,7 @@ export function ChatClient() {
             <strong>{brand.products.chat}</strong>
             <div className="note">Protected workspace · local vault</div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="chat-controls" style={{ display: "flex", gap: 8 }}>
             <select
               value={model}
               onChange={(event) => {

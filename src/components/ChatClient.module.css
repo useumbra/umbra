@@ -170,6 +170,7 @@
     display: block;
     width: min(310px, 88vw);
     overflow-y: auto;
+    background: var(--bg);
     box-shadow: 16px 0 40px rgb(0 0 0 / 0.3);
   }
 

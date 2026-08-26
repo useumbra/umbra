@@ -48,7 +48,7 @@ export function Header() {
       <button
         className="menu-button"
         type="button"
-        aria-label="Open navigation menu"
+        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
         aria-expanded={open}
         aria-controls="mobile-navigation"
         onClick={() => setOpen((value) => !value)}
