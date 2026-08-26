@@ -5,7 +5,7 @@ import type { ReasoningEffort } from "@/lib/providers/types";
 import { models } from "@/config/models";
 import { route } from "@/lib/router";
 import type { ProviderContent } from "@/lib/providers/types";
-export const runtime = "edge";
+
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
     messages: {

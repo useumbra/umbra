@@ -59,8 +59,9 @@ const readDataUrl = (file: File) =>
   });
 
 const readPdf = async (file: File) => {
-  const pdfModuleUrl: string = "/pdf.min.mjs";
-  // Keep the URL typed as string and use webpackIgnore to avoid rebundling PDF.js.
+  // Keep this runtime URL and webpackIgnore so OpenNext does not rebundle PDF.js.
+  const pdfModuleUrl: string = new URL("/pdf.min.mjs", window.location.href)
+    .href;
   const pdfjs = (await import(
     /* webpackIgnore: true */ pdfModuleUrl
   )) as unknown as PdfJs;
