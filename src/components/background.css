@@ -1,0 +1,158 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 85% at 50% -20%,
+      color-mix(in oklab, var(--accent) 9%, transparent),
+      transparent 60%
+    ),
+    var(--bg);
+}
+
+.backdrop-aurora {
+  position: absolute;
+  inset: -25%;
+  filter: blur(90px) saturate(130%);
+}
+
+.aurora {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  opacity: 0.5;
+  will-change: transform;
+}
+
+.aurora-1 {
+  width: 58vw;
+  height: 58vw;
+  top: -6%;
+  left: 8%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--accent) 55%, transparent),
+    transparent 65%
+  );
+  animation: drift-1 34s ease-in-out infinite alternate;
+}
+
+.aurora-2 {
+  width: 46vw;
+  height: 46vw;
+  top: 18%;
+  right: 2%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--halo-cool) 62%, transparent),
+    transparent 66%
+  );
+  animation: drift-2 42s ease-in-out infinite alternate;
+}
+
+.aurora-3 {
+  width: 52vw;
+  height: 52vw;
+  bottom: -14%;
+  left: 26%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--halo-warm) 55%, transparent),
+    transparent 68%
+  );
+  animation: drift-3 38s ease-in-out infinite alternate;
+}
+
+.backdrop-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 15%, transparent 78%);
+}
+
+.backdrop-beam {
+  position: absolute;
+  top: -35%;
+  left: 50%;
+  width: 130vw;
+  height: 70vh;
+  translate: -50% 0;
+  rotate: -7deg;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--accent) 12%, transparent) 50%,
+    transparent 80%
+  );
+  filter: blur(48px);
+  animation: sweep 26s ease-in-out infinite alternate;
+}
+
+.backdrop-noise {
+  position: absolute;
+  inset: 0;
+  opacity: var(--noise-opacity);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.backdrop-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    100% 70% at 50% 30%,
+    transparent 40%,
+    color-mix(in oklab, var(--bg) 78%, transparent) 100%
+  );
+}
+
+@keyframes drift-1 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(9vw, 6vh, 0) scale(1.14);
+  }
+}
+
+@keyframes drift-2 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  to {
+    transform: translate3d(-11vw, 9vh, 0) scale(0.94);
+  }
+}
+
+@keyframes drift-3 {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  to {
+    transform: translate3d(7vw, -8vh, 0) scale(1.18);
+  }
+}
+
+@keyframes sweep {
+  from {
+    opacity: 0.35;
+    transform: translateX(-6vw);
+  }
+  to {
+    opacity: 0.85;
+    transform: translateX(6vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora,
+  .backdrop-beam {
+    animation: none;
+  }
+}
