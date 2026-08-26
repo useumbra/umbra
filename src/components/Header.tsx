@@ -25,10 +25,20 @@ export function Header() {
     ["/image", "Image"],
     ["/video", "Video"],
     ["/code", "Code"],
+    ["/docs", "Docs"],
     ["/connectors", "Connectors"],
     ["/credits", "Credits"],
     ["/developers", "Developers"],
+    ["/roadmap", "Roadmap"],
     [brand.appPath, `Open ${brand.products.chat}`],
+  ] as const;
+  const desktopDestinations = [
+    destinations[0],
+    destinations[1],
+    destinations[2],
+    destinations[3],
+    destinations[4],
+    destinations[9],
   ] as const;
   return (
     <header className="site-header">
@@ -37,7 +47,7 @@ export function Header() {
         {brand.wordmark}
       </Link>
       <nav aria-label="Primary navigation">
-        {destinations.map(([href, label]) => (
+        {desktopDestinations.map(([href, label]) => (
           <Link
             href={href}
             key={href}

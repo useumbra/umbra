@@ -233,19 +233,27 @@ export function Landing() {
           </section>
         </Reveal>
         <footer>
-          <span>
-            {brand.name} / {brand.domain} · Built for clearer boundaries.
-          </span>{" "}
-          <a
-            href={brand.social.x.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="social-link"
-            aria-label={`${brand.name} on X`}
-            title={brand.social.x.handle}
-          >
-            <XIcon />
-          </a>
+          <nav className="footer-links" aria-label="Umbra resources">
+            <Link href="/connectors">Connectors</Link>
+            <Link href="/credits">Credits</Link>
+            <Link href="/developers">Developers</Link>
+            <Link href="/roadmap">Roadmap</Link>
+          </nav>
+          <div className="footer-meta">
+            <span>
+              {brand.name} / {brand.domain} · Built for clearer boundaries.
+            </span>{" "}
+            <a
+              href={brand.social.x.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-link"
+              aria-label={`${brand.name} on X`}
+              title={brand.social.x.handle}
+            >
+              <XIcon />
+            </a>
+          </div>
         </footer>
       </main>
     </>

@@ -283,6 +283,71 @@ footer {
   height: 14px;
   flex: 0 0 auto;
 }
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.footer-links a:hover {
+  color: var(--ink);
+}
+.footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.docs-page,
+.roadmap-page {
+  padding-bottom: 80px;
+}
+.docs-hero,
+.roadmap-hero {
+  padding-bottom: 75px;
+  text-align: left;
+}
+.docs-hero h1,
+.roadmap-hero h1 {
+  margin-left: 0;
+  font-size: clamp(50px, 8vw, 88px);
+}
+.docs-hero p,
+.roadmap-hero p {
+  margin-left: 0;
+}
+.docs-section,
+.roadmap-section {
+  padding-top: 75px;
+  padding-bottom: 75px;
+}
+.docs-copy {
+  max-width: 850px;
+}
+.docs-copy p {
+  margin: 0 0 18px;
+  line-height: 1.65;
+}
+.docs-copy p:last-child {
+  margin-bottom: 0;
+}
+.docs-copy code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.docs-code {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font:
+    13px/1.6 var(--font-geist-mono),
+    monospace;
+}
+.roadmap-section .feature h3 {
+  line-height: 1.35;
+}
 .app-shell {
   display: grid;
   grid-template-columns: 245px 1fr;
