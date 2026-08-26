@@ -7,6 +7,7 @@ import { models } from "@/config/models";
 import { Vault, redact } from "@/lib/privacy";
 import { BoundaryArt } from "./BoundaryArt";
 import { Header } from "./Header";
+import { ProductShowcase } from "./ProductShowcase";
 import { Reveal } from "./Reveal";
 import { XIcon } from "./XIcon";
 
@@ -189,6 +190,7 @@ export function Landing() {
             </div>
           </section>
         </Reveal>
+        <ProductShowcase />
         <Reveal className="section">
           <section>
             <div className="section-heading">
