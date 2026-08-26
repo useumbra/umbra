@@ -8,13 +8,19 @@ import { models } from "@/config/models";
 import { Header } from "./Header";
 export function Landing() {
   const [mediaLive, setMediaLive] = useState(false);
+  const [codeLive, setCodeLive] = useState(false);
   useEffect(() => {
     void fetch("/api/image")
       .then((response) => response.json() as Promise<{ stub?: boolean }>)
       .then((body) => setMediaLive(body.stub === false))
       .catch(() => setMediaLive(false));
+    void fetch("/api/code")
+      .then((response) => response.json() as Promise<{ stub?: boolean }>)
+      .then((body) => setCodeLive(body.stub === false))
+      .catch(() => setCodeLive(false));
   }, []);
   const mediaStatus = mediaLive ? "LIVE NOW" : "DEMO · STUB";
+  const codeStatus = codeLive ? "LIVE NOW" : "DEMO · STUB";
   const products = [
     [
       brand.products.chat,
@@ -35,7 +41,13 @@ export function Landing() {
         : "Local video frame stub until a FAL_KEY provider is configured.",
       mediaStatus,
     ],
-    [brand.products.code, "A guarded pair-programming surface.", "COMING SOON"],
+    [
+      brand.products.code,
+      codeLive
+        ? "A guarded pair-programming surface."
+        : "A local project demo until an OpenRouter key is configured.",
+      codeStatus,
+    ],
     [
       brand.products.pay,
       "Programmable credits for your workflow.",

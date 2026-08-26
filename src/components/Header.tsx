@@ -23,6 +23,7 @@ export function Header() {
     ["/leak-check", "Leak check"],
     ["/image", "Image"],
     ["/video", "Video"],
+    ["/code", "Code"],
     ["/credits", "Credits"],
     ["/developers", "Developers"],
     [brand.appPath, `Open ${brand.products.chat}`],
