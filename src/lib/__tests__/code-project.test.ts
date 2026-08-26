@@ -48,16 +48,26 @@ describe("code project parser", () => {
 
   it("inlines assets when the html document has no head or body close", () => {
     const result = inlineCodeProject({
-      "index.html":
-        '<html><head><link rel="stylesheet" href="styles.css"></head><main>Demo</main><script src="./script.js"></script></html>',
+      "index.html": "<html><main>Demo</main></html>",
       "styles.css": "main { color: red; }",
       "script.js": "document.title = 'Demo';",
     });
     expect(result).toContain("<style>main { color: red; }</style>");
     expect(result).toContain("<script>document.title = 'Demo';</script>");
-    expect(result).not.toContain('href="styles.css"');
-    expect(result).not.toContain('src="./script.js"');
     expect(result.indexOf("<style>")).toBeLessThan(result.indexOf("</html>"));
     expect(result.indexOf("<script>")).toBeLessThan(result.indexOf("</html>"));
+  });
+
+  it("strips local asset references when inlining", () => {
+    const result = inlineCodeProject({
+      "index.html":
+        '<html><head><link rel="stylesheet" href="styles.css"></head><body><main>Demo</main><script src="./script.js"></script></body></html>',
+      "styles.css": "main { color: red; }",
+      "script.js": "document.title = 'Demo';",
+    });
+    expect(result).not.toContain('href="styles.css"');
+    expect(result).not.toContain('src="./script.js"');
+    expect(result).toContain("<style>main { color: red; }</style>");
+    expect(result).toContain("<script>document.title = 'Demo';</script>");
   });
 });
