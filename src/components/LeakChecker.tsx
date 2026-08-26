@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Header } from "./Header";
+import { XIcon } from "./XIcon";
 import { Vault, redact, scoreLeaks } from "@/lib/privacy";
 import { brand } from "@/config/brand";
 const samples = {
@@ -125,8 +126,11 @@ export function LeakChecker() {
             href={brand.social.x.url}
             target="_blank"
             rel="noopener noreferrer"
+            className="social-link"
+            aria-label={`${brand.name} on X`}
+            title={brand.social.x.handle}
           >
-            {brand.social.x.handle}
+            <XIcon />
           </a>
         </footer>
       </main>

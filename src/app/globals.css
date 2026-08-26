@@ -262,6 +262,18 @@ footer {
   font-size: 13px;
   border-top: 1px solid var(--line);
 }
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+  color: inherit;
+}
+.social-link svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
 .app-shell {
   display: grid;
   grid-template-columns: 245px 1fr;

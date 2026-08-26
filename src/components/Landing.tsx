@@ -7,6 +7,7 @@ import { models } from "@/config/models";
 import { Vault, redact } from "@/lib/privacy";
 import { BoundaryArt } from "./BoundaryArt";
 import { Header } from "./Header";
+import { XIcon } from "./XIcon";
 
 const privacySample =
   "Hi, my name is John Smith, my email is john@example.com, my wallet is 0x1234567890123456789012345678901234567890 and I live in Lisbon.";
@@ -221,8 +222,11 @@ export function Landing() {
             href={brand.social.x.url}
             target="_blank"
             rel="noopener noreferrer"
+            className="social-link"
+            aria-label={`${brand.name} on X`}
+            title={brand.social.x.handle}
           >
-            {brand.social.x.handle}
+            <XIcon />
           </a>
         </footer>
       </main>

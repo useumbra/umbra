@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { brand } from "@/config/brand";
 import { ThemeToggle } from "./ThemeToggle";
+import { XIcon } from "./XIcon";
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -67,8 +68,12 @@ export function Header() {
             href={brand.social.x.url}
             target="_blank"
             rel="noopener noreferrer"
+            className="social-link"
+            aria-label={`${brand.name} on X`}
+            title={brand.social.x.handle}
           >
-            {brand.social.x.handle}
+            <XIcon />
+            <span>X</span>
           </a>
           <div className="mobile-theme">
             <span>Theme</span>
