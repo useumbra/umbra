@@ -21,11 +21,6 @@ export function BoundaryArt() {
       aria-label="Raw details entering a privacy boundary and leaving as placeholders"
     >
       <defs>
-        <linearGradient id="umbra-art-membrane" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0" />
-          <stop offset="50%" stopColor="var(--accent)" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-        </linearGradient>
         <clipPath id="umbra-art-lower">
           <rect x="0" y="100" width="200" height="100" />
         </clipPath>
@@ -49,18 +44,15 @@ export function BoundaryArt() {
       ))}
 
       <path
-        d="M 296 6 C 276 60, 276 140, 296 194"
+        d="M 300 6 C 292 60, 292 140, 300 194"
         className="art-membrane-line"
       />
-      <rect
-        x={294}
-        y={6}
-        width={4}
-        height={188}
-        fill="url(#umbra-art-membrane)"
+      <path
+        d="M 300 6 C 308 60, 308 140, 300 194"
+        className="art-membrane-line"
       />
 
-      <g transform="translate(276 76) scale(0.48)">
+      <g transform="translate(264 64) scale(0.36)">
         <circle cx="100" cy="100" r="78" className="art-mark-ring" />
         <circle
           cx="100"
@@ -73,7 +65,7 @@ export function BoundaryArt() {
 
       {cleanTokens.map((token) => (
         <g key={token.y}>
-          <path d={`M 322 ${token.y + 9} H 420`} className="art-wire" />
+          <path d={`M 332 ${token.y + 9} H 420`} className="art-wire" />
           <rect
             x={430}
             y={token.y}
@@ -96,7 +88,7 @@ export function BoundaryArt() {
       <text x={430} y={22} className="art-caption">
         PLACEHOLDERS
       </text>
-      <text x={556} y={188} className="art-caption">
+      <text x={566} y={22} className="art-caption">
         MODELS
       </text>
     </svg>
