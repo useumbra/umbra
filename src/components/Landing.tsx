@@ -43,8 +43,8 @@ export function Landing() {
     ],
     [
       brand.products.api,
-      "Privacy-first model access for builders.",
-      "COMING SOON",
+      "OpenAI-compatible model access for builders.",
+      "LIVE NOW",
     ],
   ] as const;
   return (
@@ -132,7 +132,12 @@ export function Landing() {
               <div className="feature" key={name}>
                 <span className="badge">{status}</span>
                 <h3>{name}</h3>
-                <p>{description}</p>
+                <p>
+                  {description}{" "}
+                  {name === brand.products.api && (
+                    <Link href="/developers">Read the API guide →</Link>
+                  )}
+                </p>
               </div>
             ))}
           </div>
@@ -176,9 +181,7 @@ export function Landing() {
           <div className="section-heading">
             <h2>Credits with a clear destination.</h2>
             <p>
-              Payments are planned, not live in this MVP. When enabled, credits
-              will be funded with USDG (Global Dollar) or {brand.token} on{" "}
-              {brand.chain.name}.
+              {`Payments are planned, not live in this MVP. When enabled, credits will be funded with USDG (Global Dollar) or ${brand.token} on ${brand.chain.name}.`}
             </p>
           </div>
           <p className="note">

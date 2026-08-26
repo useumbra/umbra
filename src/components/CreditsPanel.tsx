@@ -106,16 +106,15 @@ export function CreditsPanel() {
   return (
     <div className={styles.page}>
       <Header />
-      <main className={styles.content}>
+      <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Browser-only credits</div>
         <h1 style={{ marginLeft: 0, fontSize: "clamp(50px, 8vw, 88px)" }}>
           Your local balance.
         </h1>
-        <p className="note">
-          This is an encrypted local test balance. On-chain funding with USDG or{" "}
-          {brand.token} is not connected yet.
+        <p className={styles.intro}>
+          {`This is an encrypted local test balance. On-chain funding with USDG or ${brand.token} is not connected yet.`}
         </p>
-        <section className={styles.card}>
+        <section className={`panel ${styles.card}`}>
           <h2>{vault ? `${balance.toFixed(2)} credits` : "Vault locked"}</h2>
           <p className="note">
             The vault uses PBKDF2 and AES-GCM through WebCrypto. Umbra never
@@ -186,7 +185,7 @@ export function CreditsPanel() {
           {message && <p role="status">{message}</p>}
         </section>
         {vault && (
-          <section className={styles.card}>
+          <section className={`panel ${styles.card}`}>
             <div className="eyebrow">Transaction ledger</div>
             <div className={styles.ledger}>
               {vault.ledger.length === 0 && (

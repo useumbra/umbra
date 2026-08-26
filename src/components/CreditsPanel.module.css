@@ -1,20 +1,22 @@
 .page {
   min-height: 100vh;
-  padding: 0 28px 80px;
+  padding: 0 0 80px;
 }
 
 .content {
-  max-width: 860px;
-  margin: 0 auto;
   padding-top: 70px;
+}
+
+.intro {
+  max-width: 640px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
 }
 
 .card {
   margin-top: 28px;
   padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--panel);
 }
 
 .input {
@@ -62,6 +64,6 @@
 
 @media (max-width: 700px) {
   .page {
-    padding: 0 18px 60px;
+    padding: 0 0 60px;
   }
 }

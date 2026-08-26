@@ -88,15 +88,13 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
   };
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <Header />
-      </div>
-      <main className={styles.content}>
+      <Header />
+      <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Private creation</div>
         <h1 style={{ marginLeft: 0, fontSize: "clamp(50px, 8vw, 88px)" }}>
           {title}
         </h1>
-        <p className="note">
+        <p className={styles.intro}>
           Your prompt is protected in this browser before the generation
           provider receives it.
         </p>
@@ -162,7 +160,7 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
         {error && <p role="alert">{error}</p>}
         {result && (
           <div className={styles.result}>
-            <div className={styles.preview}>
+            <div className={`panel ${styles.preview}`}>
               {kind === "image" ? (
                 <Image
                   src={result.url}
@@ -211,7 +209,7 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
                 </p>
               </details>
             </div>
-            <aside className={styles.history}>
+            <aside className={`panel ${styles.history}`}>
               <div className="eyebrow">Local history</div>
               {!history.length && <p className="note">No generations yet.</p>}
               {history.slice(0, 8).map((item) => (

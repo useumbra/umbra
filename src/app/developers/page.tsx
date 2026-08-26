@@ -9,12 +9,12 @@ export default function DevelopersPage() {
   return (
     <div className={styles.page}>
       <Header />
-      <main className={styles.content}>
+      <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Build with Umbra</div>
         <h1 style={{ marginLeft: 0, fontSize: "clamp(50px, 8vw, 88px)" }}>
           A familiar API boundary.
         </h1>
-        <p className="note">
+        <p className={styles.intro}>
           Use OpenAI-compatible clients with Umbra&apos;s model registry. Your
           API key authorizes requests; prompts are never logged.
         </p>
