@@ -131,7 +131,7 @@ const topics = [
         <p>
           The credits surface can read wallet balances on{" "}
           {chainNetworks.mainnet.name} (chain ID {chainNetworks.mainnet.chainId}
-          ) , including USDG at <code>{chainNetworks.mainnet.usdG}</code>. These
+          ), including USDG at <code>{chainNetworks.mainnet.usdG}</code>. These
           wallet reads are read-only.
         </p>
         <p className="note">
