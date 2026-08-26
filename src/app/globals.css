@@ -810,3 +810,70 @@ footer {
     margin-top: 18px;
   }
 }
+
+.boundary-art {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin: 42px auto 0;
+  overflow: visible;
+}
+
+.art-raw {
+  fill: color-mix(in srgb, var(--muted) 16%, transparent);
+  stroke: var(--muted);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+}
+
+.art-clean {
+  fill: transparent;
+  stroke: var(--accent);
+  stroke-opacity: 0.75;
+  stroke-width: 1;
+}
+
+.art-wire {
+  fill: none;
+  stroke: var(--muted);
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+}
+
+.art-membrane-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-opacity: 0.75;
+  stroke-width: 1;
+}
+
+.art-mark-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.art-mark-fill {
+  fill: var(--accent);
+  fill-opacity: 0.88;
+}
+
+.art-node {
+  fill: var(--muted);
+  fill-opacity: 0.55;
+}
+
+.art-caption {
+  fill: var(--muted);
+  font:
+    9px var(--font-geist-mono),
+    monospace;
+  letter-spacing: 0.14em;
+}
+
+@media (max-width: 520px) {
+  .art-caption {
+    display: none;
+  }
+}

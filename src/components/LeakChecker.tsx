@@ -118,7 +118,16 @@ export function LeakChecker() {
           ))}
         </section>
         <footer>
-          <Link href="/">← Back to {brand.name}</Link>
+          <span>
+            <Link href="/">← Back to {brand.name}</Link>
+          </span>{" "}
+          <a
+            href={brand.social.x.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {brand.social.x.handle}
+          </a>
         </footer>
       </main>
     </>

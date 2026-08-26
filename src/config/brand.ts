@@ -4,6 +4,9 @@ export const brand = {
   token: "$UMB",
   chain: { name: "Robinhood Chain", id: 4663 },
   domain: "useumbra.org",
+  social: {
+    x: { handle: "@use_umbra", url: "https://x.com/use_umbra" },
+  },
   appPath: "/app",
   apiBasePath: "/api/agent/v1",
   products: {

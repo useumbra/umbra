@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { brand } from "@/config/brand";
 import { models } from "@/config/models";
 import { Vault, redact } from "@/lib/privacy";
+import { BoundaryArt } from "./BoundaryArt";
 import { Header } from "./Header";
 
 const privacySample =
@@ -87,6 +88,7 @@ export function Landing() {
             <span>no training on your data</span>
             <span>browser-only memory</span>
           </div>
+          <BoundaryArt />
         </section>
         <section className="section">
           <div className="section-heading">
@@ -212,7 +214,16 @@ export function Landing() {
           </div>
         </section>
         <footer>
-          {brand.name} / {brand.domain} · Built for clearer boundaries.
+          <span>
+            {brand.name} / {brand.domain} · Built for clearer boundaries.
+          </span>{" "}
+          <a
+            href={brand.social.x.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {brand.social.x.handle}
+          </a>
         </footer>
       </main>
     </>

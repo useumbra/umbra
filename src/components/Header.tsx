@@ -63,6 +63,13 @@ export function Header() {
               {label}
             </Link>
           ))}
+          <a
+            href={brand.social.x.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {brand.social.x.handle}
+          </a>
           <div className="mobile-theme">
             <span>Theme</span>
             <ThemeToggle />
