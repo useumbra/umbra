@@ -59,6 +59,8 @@ const readDataUrl = (file: File) =>
   });
 
 const readPdf = async (file: File) => {
+  if (typeof window === "undefined")
+    throw new Error("PDF attachments require a browser");
   // Keep this runtime URL and webpackIgnore so OpenNext does not rebundle PDF.js.
   const pdfModuleUrl: string = new URL("/pdf.min.mjs", window.location.href)
     .href;
