@@ -82,6 +82,15 @@ nav {
   color: var(--muted);
   font-size: 14px;
 }
+@media (max-width: 1000px) and (min-width: 721px) {
+  nav {
+    gap: 10px;
+    font-size: 12px;
+  }
+  .nav-cta {
+    padding: 8px 10px;
+  }
+}
 nav a:hover {
   color: var(--ink);
 }

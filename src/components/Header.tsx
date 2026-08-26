@@ -25,6 +25,7 @@ export function Header() {
     ["/image", "Image"],
     ["/video", "Video"],
     ["/code", "Code"],
+    ["/connectors", "Connectors"],
     ["/credits", "Credits"],
     ["/developers", "Developers"],
     [brand.appPath, `Open ${brand.products.chat}`],

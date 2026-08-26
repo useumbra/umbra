@@ -34,7 +34,9 @@ export const saveConversation = async (conversation: Conversation) =>
   (await db()).put("conversations", conversation, conversation.id);
 export const deleteConversation = async (id: string) =>
   (await db()).delete("conversations", id);
-export const getSetting = async <T>(key: string, fallback: T) =>
-  ((await db()).get("settings", key) as T) ?? fallback;
+export const getSetting = async <T>(key: string, fallback: T) => {
+  const value = await (await db()).get("settings", key);
+  return value === undefined ? fallback : (value as T);
+};
 export const saveSetting = async (key: string, value: unknown) =>
   (await db()).put("settings", value, key);

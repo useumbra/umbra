@@ -36,6 +36,77 @@
   opacity: 0.5;
 }
 
+.memoryPanel {
+  margin-top: 18px;
+  padding: 12px;
+}
+
+.memoryHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.memoryToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.memoryInput {
+  width: 100%;
+  min-height: 62px;
+  margin-top: 8px;
+  padding: 8px;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.memoryActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.memoryActions button,
+.memoryEntry button,
+.rememberButton {
+  padding: 6px 8px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.memoryEntry {
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.memoryEntry div {
+  display: flex;
+  gap: 5px;
+}
+
+.rememberButton {
+  display: block;
+  margin-top: 12px;
+}
+
 .conversationList {
   margin-top: 25px;
 }

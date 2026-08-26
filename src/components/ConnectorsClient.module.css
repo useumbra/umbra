@@ -1,0 +1,158 @@
+.page {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.content {
+  padding-top: 70px;
+}
+
+.intro {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.card {
+  margin-top: 35px;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.form input,
+.tool textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.form .actions {
+  grid-column: 1 / -1;
+}
+
+.actions button,
+.tool button {
+  padding: 8px 11px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.actions button:disabled,
+.tool button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.message {
+  margin: 16px 0 0;
+  color: var(--muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.list {
+  display: grid;
+  gap: 15px;
+}
+
+.connectorHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.connectorHeading h2 {
+  font-size: 25px;
+}
+
+.connectorHeading code {
+  display: block;
+  max-width: 100%;
+  margin-top: 9px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.tools {
+  display: grid;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.tool {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.tool h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.tool textarea {
+  min-height: 75px;
+  margin: 10px 0;
+  resize: vertical;
+  font:
+    12px/1.5 var(--font-geist-mono),
+    monospace;
+}
+
+.result {
+  max-width: 100%;
+  margin: 14px 0 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+@media (max-width: 700px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .form .actions {
+    grid-column: auto;
+  }
+
+  .connectorHeading {
+    display: block;
+  }
+
+  .connectorHeading .actions {
+    margin-top: 18px;
+  }
+}

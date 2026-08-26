@@ -5,6 +5,16 @@ import { brand } from "@/config/brand";
 import { models } from "@/config/models";
 import { Vault, redact, restore } from "@/lib/privacy";
 import {
+  addMemory,
+  clearMemory,
+  getMemory,
+  removeMemory,
+  setMemoryEnabled,
+  updateMemory,
+  memoryPrompt,
+  type MemoryState,
+} from "@/lib/memory";
+import {
   MAX_ATTACHMENT_TEXT,
   combineReceipts,
   readAttachment,
@@ -44,6 +54,13 @@ export function ChatClient() {
   const [renameValue, setRenameValue] = useState("");
   const [copiedId, setCopiedId] = useState<string>();
   const [atLatest, setAtLatest] = useState(true);
+  const [memory, setMemory] = useState<MemoryState>({
+    enabled: true,
+    entries: [],
+  });
+  const [memoryDraft, setMemoryDraft] = useState("");
+  const [editingMemoryId, setEditingMemoryId] = useState<string>();
+  const [memoryMessage, setMemoryMessage] = useState("");
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | undefined>(undefined);
@@ -55,11 +72,13 @@ export function ChatClient() {
       getSetting("mode", "smart" as const),
       getSetting("model", models[0].id),
       getSetting("effort", "medium"),
-    ]).then(([items, savedMode, savedModel, savedEffort]) => {
+      getMemory(),
+    ]).then(([items, savedMode, savedModel, savedEffort, savedMemory]) => {
       setConversations(items);
       setMode(savedMode);
       setModel(savedModel);
       setEffort(savedEffort);
+      setMemory(savedMemory);
       if (items[0]) setActive(items[0]);
     });
   }, []);
@@ -114,6 +133,10 @@ export function ChatClient() {
     };
     const vault = Vault.fromJSON(conversation.vault);
     const protectedPrompt = redact(draft, vault, mode);
+    const protectedMemory =
+      memory.enabled && memory.entries.length
+        ? redact(memoryPrompt(memory.entries), vault, mode).text
+        : "";
     let originalContent = draft;
     let protectedContent = protectedPrompt.text;
     const receipts = [protectedPrompt.receipt];
@@ -175,6 +198,8 @@ export function ChatClient() {
           content: message.redacted ?? message.content,
         }),
       );
+      if (protectedMemory)
+        providerMessages.unshift({ role: "system", content: protectedMemory });
       const imageAttachments = attachments.filter(
         (attachment) => attachment.metadata.kind === "image",
       );
@@ -367,6 +392,21 @@ export function ChatClient() {
     }
     setAttachments((items) => [...items, ...next]);
   };
+  const remember = async (text: string) => {
+    const next = await addMemory(text, memory);
+    setMemory(next);
+    setMemoryMessage("Saved to Umbra Memory in this browser.");
+  };
+  const saveMemoryDraft = async () => {
+    if (!memoryDraft.trim()) return;
+    const next = editingMemoryId
+      ? await updateMemory(editingMemoryId, memoryDraft, memory)
+      : await addMemory(memoryDraft, memory);
+    setMemory(next);
+    setMemoryDraft("");
+    setEditingMemoryId(undefined);
+    setMemoryMessage("Memory saved in this browser.");
+  };
   return (
     <div className="app-shell">
       {sidebarOpen && (
@@ -437,6 +477,75 @@ export function ChatClient() {
             }}
           />
           {transferMessage && <p className="note">{transferMessage}</p>}
+        </div>
+        <div className={`panel ${styles.memoryPanel}`}>
+          <div className={styles.memoryHeading}>
+            <strong>Umbra Memory</strong>
+            <label className={styles.memoryToggle}>
+              <input
+                type="checkbox"
+                checked={memory.enabled}
+                onChange={(event) => {
+                  const enabled = event.target.checked;
+                  setMemory((value) => ({ ...value, enabled }));
+                  void setMemoryEnabled(enabled, memory);
+                }}
+              />
+              On
+            </label>
+          </div>
+          <p className="note">
+            Memory lives only in this browser and is redacted before sending.
+          </p>
+          <textarea
+            className={styles.memoryInput}
+            value={memoryDraft}
+            onChange={(event) => setMemoryDraft(event.target.value)}
+            placeholder="A detail Umbra should remember"
+            aria-label="Memory entry"
+          />
+          <div className={styles.memoryActions}>
+            <button onClick={() => void saveMemoryDraft()}>
+              {editingMemoryId ? "Update" : "Add memory"}
+            </button>
+            {memory.entries.length > 0 && (
+              <button
+                onClick={() => {
+                  void clearMemory(memory).then((next) => {
+                    setMemory(next);
+                    setMemoryMessage("Memory cleared in this browser.");
+                  });
+                }}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          {memory.entries.map((entry) => (
+            <div className={styles.memoryEntry} key={entry.id}>
+              <span>{entry.text}</span>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingMemoryId(entry.id);
+                    setMemoryDraft(entry.text);
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void removeMemory(entry.id, memory).then(setMemory)
+                  }
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          {memoryMessage && <p className="note">{memoryMessage}</p>}
         </div>
         <div className={styles.conversationList}>
           {filteredConversations.map((conversation) => (
@@ -620,6 +729,15 @@ export function ChatClient() {
                       </div>
                     ))}
                   </details>
+                )}
+                {message.role === "user" && (
+                  <button
+                    className={styles.rememberButton}
+                    type="button"
+                    onClick={() => void remember(message.content)}
+                  >
+                    Remember this
+                  </button>
                 )}
               </div>
             </div>
