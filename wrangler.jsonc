@@ -7,15 +7,5 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  },
-  "routes": [
-    {
-      "pattern": "useumbra.org",
-      "custom_domain": true
-    },
-    {
-      "pattern": "www.useumbra.org",
-      "custom_domain": true
-    }
-  ]
+  }
 }
