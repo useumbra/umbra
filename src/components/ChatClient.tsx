@@ -89,6 +89,10 @@ export function ChatClient() {
         }),
       });
       if (!response.body) throw new Error("No stream");
+      const routeModel = response.headers.get("X-Umbra-Route-Model");
+      const routeReason = response.headers.get("X-Umbra-Route-Reason");
+      if (routeModel && routeReason)
+        assistant.route = { model: routeModel, reason: routeReason };
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let raw = "";
@@ -239,6 +243,14 @@ export function ChatClient() {
               </div>
               <div className="message-bubble">
                 {message.content}
+                {message.role === "assistant" && message.route && (
+                  <div className="note">
+                    routed to{" "}
+                    {models.find((item) => item.id === message.route?.model)
+                      ?.label ?? message.route.model}{" "}
+                    — {message.route.reason}
+                  </div>
+                )}
                 {message.receipt && (
                   <details style={{ marginTop: 15 }}>
                     <summary className="note">

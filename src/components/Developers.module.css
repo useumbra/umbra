@@ -1,0 +1,50 @@
+.page {
+  min-height: 100vh;
+  padding: 0 28px 80px;
+}
+
+.content {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-top: 70px;
+}
+
+.code {
+  overflow-x: auto;
+  padding: 18px;
+  margin: 14px 0 28px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: 13px/1.6 var(--font-geist-mono), monospace;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.table th {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 0 18px 60px;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+}

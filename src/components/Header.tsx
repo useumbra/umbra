@@ -10,6 +10,10 @@ export function Header() {
       </Link>
       <nav>
         <Link href="/leak-check">Leak check</Link>
+        <Link href="/image">Image</Link>
+        <Link href="/video">Video</Link>
+        <Link href="/credits">Credits</Link>
+        <Link href="/developers">Developers</Link>
         <Link href={brand.appPath} className="nav-cta">
           Open {brand.products.chat}
         </Link>

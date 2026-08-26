@@ -9,6 +9,7 @@ export type ChatMessage = {
   content: string;
   redacted?: string;
   receipt?: import("./privacy").Receipt;
+  route?: { model: string; reason: string };
 };
 export type Conversation = {
   id: string;

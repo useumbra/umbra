@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { brand } from "@/config/brand";
@@ -6,13 +7,45 @@ import { chainNetworks } from "@/config/chain";
 import { models } from "@/config/models";
 import { Header } from "./Header";
 export function Landing() {
+  const [mediaLive, setMediaLive] = useState(false);
+  useEffect(() => {
+    void fetch("/api/image")
+      .then((response) => response.json() as Promise<{ stub?: boolean }>)
+      .then((body) => setMediaLive(body.stub === false))
+      .catch(() => setMediaLive(false));
+  }, []);
+  const mediaStatus = mediaLive ? "LIVE NOW" : "DEMO · STUB";
   const products = [
-    [brand.products.chat, "A private workspace for everyday questions.", true],
-    [brand.products.image, "Visual generation with the same boundary.", false],
-    [brand.products.video, "Long-form creation, coming into focus.", false],
-    [brand.products.code, "A guarded pair-programming surface.", false],
-    [brand.products.pay, "Programmable credits for your workflow.", false],
-    [brand.products.api, "Privacy-first model access for builders.", false],
+    [
+      brand.products.chat,
+      "A private workspace for everyday questions.",
+      "LIVE NOW",
+    ],
+    [
+      brand.products.image,
+      mediaLive
+        ? "Visual generation with the same boundary."
+        : "Local image stub until a FAL_KEY provider is configured.",
+      mediaStatus,
+    ],
+    [
+      brand.products.video,
+      mediaLive
+        ? "Long-form creation with the same boundary."
+        : "Local video frame stub until a FAL_KEY provider is configured.",
+      mediaStatus,
+    ],
+    [brand.products.code, "A guarded pair-programming surface.", "COMING SOON"],
+    [
+      brand.products.pay,
+      "Programmable credits for your workflow.",
+      "COMING SOON",
+    ],
+    [
+      brand.products.api,
+      "Privacy-first model access for builders.",
+      "COMING SOON",
+    ],
   ] as const;
   return (
     <>
@@ -95,11 +128,9 @@ export function Landing() {
             </p>
           </div>
           <div className="feature-grid">
-            {products.map(([name, description, live]) => (
+            {products.map(([name, description, status]) => (
               <div className="feature" key={name}>
-                <span className="badge">
-                  {live ? "LIVE NOW" : "COMING SOON"}
-                </span>
+                <span className="badge">{status}</span>
                 <h3>{name}</h3>
                 <p>{description}</p>
               </div>

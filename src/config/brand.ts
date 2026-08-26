@@ -5,6 +5,7 @@ export const brand = {
   chain: { name: "Robinhood Chain", id: 4663 },
   domain: "useumbra.xyz",
   appPath: "/app",
+  apiBasePath: "/api/agent/v1",
   products: {
     chat: "UmbraChat",
     image: "UmbraImage",
