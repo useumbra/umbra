@@ -8,7 +8,7 @@ const samples = {
   "job application":
     "Hi, I'm Maya Chen. Please send my resume to maya.chen@example.com and call me at +1 415 555 0199.",
   "health question":
-    "I was diagnosed with asthma in Jakarta and my medication has made my symptoms worse.",
+    "I was diagnosed with asthma in London and my medication has made my symptoms worse.",
   "code debug":
     "The deploy uses 0x0123456789012345678901234567890123456789 and the API key sk-example-secret-token-123456789.",
 };

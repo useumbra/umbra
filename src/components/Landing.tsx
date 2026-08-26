@@ -8,7 +8,7 @@ import { Vault, redact } from "@/lib/privacy";
 import { Header } from "./Header";
 
 const privacySample =
-  "Hi, my name is John Smith, my email is john@example.com, my wallet is 0x1234567890123456789012345678901234567890 and I live in Jakarta.";
+  "Hi, my name is John Smith, my email is john@example.com, my wallet is 0x1234567890123456789012345678901234567890 and I live in Lisbon.";
 export function Landing() {
   const [mediaLive, setMediaLive] = useState(false);
   const [codeLive, setCodeLive] = useState(false);
