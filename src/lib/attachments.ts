@@ -19,6 +19,25 @@ export type AttachmentDraft = {
   dataUrl?: string;
 };
 
+type PdfTextItem = { str: string };
+type PdfTextContentItem = PdfTextItem | { type: string; id: string };
+type PdfTextContent = { items: PdfTextContentItem[] };
+type PdfPage = {
+  getTextContent: () => Promise<PdfTextContent>;
+};
+type PdfDocument = {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PdfPage>;
+};
+type PdfJs = {
+  GlobalWorkerOptions: { workerSrc: string };
+  getDocument: (options: {
+    data: Uint8Array;
+    useWorkerFetch: boolean;
+    isEvalSupported: boolean;
+  }) => { promise: Promise<PdfDocument> };
+};
+
 const textExtensions = new Set(["txt", "md", "csv", "json"]);
 
 const extension = (name: string) => name.toLowerCase().split(".").pop() ?? "";
@@ -40,8 +59,11 @@ const readDataUrl = (file: File) =>
   });
 
 const readPdf = async (file: File) => {
-  const pdfModuleUrl = ["/pdf.min.mjs"].join("");
-  const pdfjs = await import(/* webpackIgnore: true */ pdfModuleUrl);
+  const pdfModuleUrl: string = "/pdf.min.mjs";
+  // Keep the URL typed as string and use webpackIgnore to avoid rebundling PDF.js.
+  const pdfjs = (await import(
+    /* webpackIgnore: true */ pdfModuleUrl
+  )) as unknown as PdfJs;
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   const document = await pdfjs.getDocument({
     data: new Uint8Array(await file.arrayBuffer()),
@@ -54,14 +76,7 @@ const readPdf = async (file: File) => {
     const content = await page.getTextContent();
     pages.push(
       content.items
-        .map((item: unknown) =>
-          item &&
-          typeof item === "object" &&
-          "str" in item &&
-          typeof item.str === "string"
-            ? item.str
-            : "",
-        )
+        .map((item) => ("str" in item ? item.str : ""))
         .filter(Boolean)
         .join(" "),
     );
