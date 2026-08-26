@@ -664,3 +664,149 @@ footer {
     line-height: 1.5;
   }
 }
+
+.privacy-chips {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.privacy-chips span {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.privacy-showcase {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.privacy-column,
+.privacy-receipt {
+  min-width: 0;
+  padding: 25px;
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+}
+
+.privacy-copy {
+  margin: 38px 0 0;
+  color: var(--ink);
+  font:
+    15px/1.7 var(--font-geist-mono),
+    monospace;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.privacy-receipt {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.privacy-receipt .note {
+  max-width: 190px;
+  margin-bottom: 0;
+}
+
+.privacy-receipt-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 0 24px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.privacy-receipt-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.privacy-receipt-list code {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.showcase-link {
+  margin: 18px 0 0;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.models-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 25px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  backdrop-filter: blur(14px);
+}
+
+.models-strip p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.models-strip a {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .privacy-chips {
+    justify-content: flex-start;
+  }
+
+  .privacy-showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-receipt {
+    grid-column: auto;
+    display: block;
+  }
+
+  .privacy-receipt .note {
+    max-width: none;
+  }
+
+  .privacy-receipt-list {
+    grid-template-columns: 1fr;
+    margin-top: 18px;
+  }
+
+  .models-strip {
+    display: block;
+  }
+
+  .models-strip a {
+    display: inline-block;
+    margin-top: 18px;
+  }
+}

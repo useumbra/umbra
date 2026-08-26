@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { brand } from "@/config/brand";
-import { chainNetworks } from "@/config/chain";
 import { models } from "@/config/models";
+import { Vault, redact } from "@/lib/privacy";
 import { Header } from "./Header";
+
+const privacySample =
+  "Hi, my name is John Smith, my email is john@example.com, my wallet is 0x1234567890123456789012345678901234567890 and I live in Jakarta.";
 export function Landing() {
   const [mediaLive, setMediaLive] = useState(false);
   const [codeLive, setCodeLive] = useState(false);
@@ -21,6 +24,7 @@ export function Landing() {
   }, []);
   const mediaStatus = mediaLive ? "LIVE NOW" : "DEMO · STUB";
   const codeStatus = codeLive ? "LIVE NOW" : "DEMO · STUB";
+  const privacyShowcase = redact(privacySample, new Vault(), "smart");
   const products = [
     [
       brand.products.chat,
@@ -49,11 +53,6 @@ export function Landing() {
       codeStatus,
     ],
     [
-      brand.products.pay,
-      "Programmable credits for your workflow.",
-      "COMING SOON",
-    ],
-    [
       brand.products.api,
       "OpenAI-compatible model access for builders.",
       "LIVE NOW",
@@ -64,18 +63,15 @@ export function Landing() {
       <Header />
       <main className="shell">
         <section className="hero">
-          <div className="eyebrow">
-            Private intelligence / {chainNetworks.mainnet.name}
-          </div>
+          <div className="eyebrow">Private intelligence / browser-first</div>
           <h1>
             Your thoughts.
             <br />
             <span style={{ color: "var(--accent)" }}>Kept yours.</span>
           </h1>
           <p>
-            {brand.name} puts a clear privacy boundary between your words and
-            the models that help you shape them. Redact in your browser, get an
-            answer, restore your context.
+            {brand.name} puts a clear boundary between your words and helpful
+            models. Redact in your browser, get an answer, restore your context.
           </p>
           <div className="actions">
             <Link className="button" href={brand.appPath}>
@@ -85,6 +81,51 @@ export function Landing() {
               Inspect a prompt
             </Link>
           </div>
+          <div className="privacy-chips" aria-label="Privacy principles">
+            <span>zero retention</span>
+            <span>no account</span>
+            <span>no training on your data</span>
+            <span>browser-only memory</span>
+          </div>
+        </section>
+        <section className="section">
+          <div className="section-heading">
+            <h2>See the boundary before you trust it.</h2>
+            <p>
+              Umbra turns recognizable details into reversible placeholders in
+              your browser before a provider sees the request.
+            </p>
+          </div>
+          <div className="privacy-showcase">
+            <div className="privacy-column">
+              <span className="step-number">WHAT YOU WROTE</span>
+              <p className="privacy-copy">{privacySample}</p>
+            </div>
+            <div className="privacy-column">
+              <span className="step-number">WHAT THE MODEL SAW</span>
+              <p className="privacy-copy">{privacyShowcase.text}</p>
+            </div>
+            <div className="privacy-receipt">
+              <div>
+                <span className="step-number">LOCAL RECEIPT</span>
+                <p className="note">
+                  {privacyShowcase.receipt.count} details protected in this
+                  example.
+                </p>
+              </div>
+              <ul className="privacy-receipt-list">
+                {privacyShowcase.receipt.entities.map((entity, index) => (
+                  <li key={`${entity.type}-${index}`}>
+                    <span>{entity.type}</span>
+                    <code>{entity.placeholder}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="showcase-link">
+            <Link href="/leak-check">See what your own prompt reveals →</Link>
+          </p>
         </section>
         <section className="section">
           <div className="section-heading">
@@ -135,8 +176,8 @@ export function Landing() {
           <div className="section-heading">
             <h2>One boundary. Many ways to make.</h2>
             <p>
-              Start with chat today. The rest of the suite is marked clearly
-              while it is being built.
+              Bring the same browser-first boundary to conversations, media,
+              projects, and your own tools.
             </p>
           </div>
           <div className="feature-grid">
@@ -155,66 +196,23 @@ export function Landing() {
           </div>
         </section>
         <section className="section">
-          <div className="section-heading">
-            <h2>Choose the right mind for the job.</h2>
-            <p>
-              Model access and pricing are shown transparently. Rates below are
-              indicative credits per million tokens, not a payment feature yet.
-            </p>
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table className="price-table">
-              <thead>
-                <tr>
-                  <th>Model</th>
-                  <th>Context</th>
-                  <th>Input / 1M</th>
-                  <th>Output / 1M</th>
-                </tr>
-              </thead>
-              <tbody>
-                {models.map((model) => (
-                  <tr key={model.id}>
-                    <td>
-                      <strong>{model.label}</strong>
-                      <br />
-                      <span className="note">{model.description}</span>
-                    </td>
-                    <td>{(model.contextWindow / 1000).toLocaleString()}k</td>
-                    <td>{model.creditPricing.inPer1M.toFixed(2)} cr</td>
-                    <td>{model.creditPricing.outPer1M.toFixed(2)} cr</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-        <section className="section">
-          <div className="section-heading">
-            <h2>Credits with a clear destination.</h2>
-            <p>
-              {`Payments are planned, not live in this MVP. When enabled, credits will be funded with USDG (Global Dollar) or ${brand.token} on ${brand.chain.name}.`}
-            </p>
-          </div>
-          <p className="note">
-            The canonical stablecoin is resolved by its contract address, not a
-            ticker. Mainnet USDG: <code>{chainNetworks.mainnet.usdG}</code>.{" "}
-            {brand.chain.name} is an Arbitrum Orbit L2 using ETH for gas.
-          </p>
-          <div
-            className="actions"
-            style={{ justifyContent: "flex-start", marginTop: 28 }}
-          >
-            <Link className="button" href={brand.appPath}>
-              Open the workspace
-            </Link>
+          <div className="models-strip">
+            <div>
+              <span className="eyebrow">Model shelf</span>
+              <p>
+                {models.length} models, including{" "}
+                {models
+                  .slice(0, 3)
+                  .map((model) => model.label)
+                  .join(", ")}
+                .
+              </p>
+            </div>
+            <Link href="/developers">See all models and rates →</Link>
           </div>
         </section>
         <footer>
-          <span>
-            {brand.name} / {brand.domain}
-          </span>
-          <span style={{ float: "right" }}>Built for clearer boundaries.</span>
+          {brand.name} / {brand.domain} · Built for clearer boundaries.
         </footer>
       </main>
     </>

@@ -72,30 +72,32 @@ print(response.choices[0].message.content)`}</pre>
         </section>
         <section className="section" style={{ paddingTop: 35 }}>
           <h2>Models and indicative credits.</h2>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Model</th>
-                <th>Context</th>
-                <th>Input / 1M</th>
-                <th>Output / 1M</th>
-              </tr>
-            </thead>
-            <tbody>
-              {models.map((model) => (
-                <tr key={model.id}>
-                  <td>
-                    <strong>{model.id}</strong>
-                    <br />
-                    <span className="note">{model.description}</span>
-                  </td>
-                  <td>{model.contextWindow.toLocaleString()}</td>
-                  <td>{model.creditPricing.inPer1M.toFixed(2)} cr</td>
-                  <td>{model.creditPricing.outPer1M.toFixed(2)} cr</td>
+          <div style={{ overflowX: "auto" }}>
+            <table className="price-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Context</th>
+                  <th>Input / 1M</th>
+                  <th>Output / 1M</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {models.map((model) => (
+                  <tr key={model.id}>
+                    <td>
+                      <strong>{model.label}</strong>
+                      <br />
+                      <span className="note">{model.description}</span>
+                    </td>
+                    <td>{model.contextWindow.toLocaleString()}</td>
+                    <td>{model.creditPricing.inPer1M.toFixed(2)} cr</td>
+                    <td>{model.creditPricing.outPer1M.toFixed(2)} cr</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="note">
             Credits are indicative local test pricing. On-chain funding is not
             connected in this MVP.
