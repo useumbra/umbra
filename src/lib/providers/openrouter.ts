@@ -26,6 +26,9 @@ export class OpenRouterProvider implements Provider {
           messages,
           stream: true,
           ...(reasoning ? { reasoning } : {}),
+          ...(options?.maxTokens !== undefined
+            ? { max_tokens: options.maxTokens }
+            : {}),
         }),
       },
     );

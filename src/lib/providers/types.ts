@@ -12,6 +12,7 @@ export type ReasoningEffort =
   "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 export type ProviderOptions = {
   reasoningEffort?: ReasoningEffort;
+  maxTokens?: number;
 };
 export interface Provider {
   stream(

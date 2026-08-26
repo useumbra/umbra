@@ -21,7 +21,8 @@ Return only three fenced code blocks with these exact filename hints:
 \`\`\`html index.html
 \`\`\`css styles.css
 \`\`\`js script.js
-The CSS and JS blocks may be omitted when unnecessary. Do not use external assets, network requests, or explanatory prose. Make the demo genuinely interactive.`;
+The CSS and JS blocks may be omitted when unnecessary. Do not use external assets, network requests, or explanatory prose. Make the demo genuinely interactive.
+Do not use localStorage, sessionStorage, IndexedDB, or other APIs unavailable in an allow-scripts-only iframe. Keep interactive state in memory.`;
 
 export function CodeGenerator() {
   const [prompt, setPrompt] = useState("");
@@ -74,6 +75,7 @@ export function CodeGenerator() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: coder.id,
+          maxTokens: 6000,
           messages: [
             { role: "system", content: instruction },
             { role: "user", content: protectedPrompt.text },
@@ -87,6 +89,7 @@ export function CodeGenerator() {
       const decoder = new TextDecoder();
       let raw = "";
       let pending = "";
+      let finishReason: string | undefined;
       let done = false;
       const appendLine = (line: string, terminated: boolean) => {
         if (!line || line.startsWith(":")) return;
@@ -96,7 +99,10 @@ export function CodeGenerator() {
             : line.slice(5);
           if (payload === "[DONE]") return;
           try {
-            const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
+            const choice = JSON.parse(payload).choices?.[0];
+            if (typeof choice?.finish_reason === "string")
+              finishReason = choice.finish_reason;
+            const delta = choice?.delta?.content;
             if (typeof delta === "string") raw += delta;
           } catch {
             // Ignore malformed provider protocol lines.
@@ -119,6 +125,10 @@ export function CodeGenerator() {
       setProject(finalProject);
       setPreview(inlineCodeProject(finalProject.files));
       setTab("preview");
+      if (finishReason === "error" || finishReason === "length")
+        setError(
+          "The coder model ended the response early. Generate again for a complete project.",
+        );
     } catch (generationError) {
       setError(
         generationError instanceof DOMException &&

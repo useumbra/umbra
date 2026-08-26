@@ -16,7 +16,16 @@ export const inlineCodeProject = (files: Record<string, string>) => {
   const js = (files["script.js"] ?? "").replace(/<\/script/gi, "<\\/script");
   const style = `<style>${css}</style>`;
   const script = `<script>${js}</script>`;
-  let withCss = html;
+  const withoutExternalAssets = html
+    .replace(
+      /<link\b[^>]*\bhref\s*=\s*["'](?:\.?\/)?styles\.css["'][^>]*>\s*/gi,
+      "",
+    )
+    .replace(
+      /<script\b[^>]*\bsrc\s*=\s*["'](?:\.?\/)?script\.js["'][^>]*>\s*<\/script>/gi,
+      "",
+    );
+  let withCss = withoutExternalAssets;
   if (/<\/head>/i.test(withCss))
     withCss = withCss.replace(/<\/head>/i, `${style}</head>`);
   else if (/<\/body>/i.test(withCss))

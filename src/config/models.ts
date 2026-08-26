@@ -100,9 +100,9 @@ export const models: ModelConfig[] = [
     id: "qwen-coder",
     label: "Qwen Coder",
     description: "Focused help for code and debugging",
-    contextWindow: 131072,
-    upstreamSlug: "qwen/qwen-2.5-coder-32b-instruct",
-    creditPricing: { inPer1M: 0.18, outPer1M: 0.18 },
+    contextWindow: 262144,
+    upstreamSlug: "qwen/qwen3-coder",
+    creditPricing: { inPer1M: 0.3, outPer1M: 1 },
     capabilities: {
       streaming: true,
       vision: false,

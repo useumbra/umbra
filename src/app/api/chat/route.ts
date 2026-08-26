@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     }[];
     model?: string;
     effort?: ReasoningEffort;
+    maxTokens?: number;
   };
   // Never log message content at this boundary; prompts are user-private data.
   const requestedModel = body.model ?? "umbra-auto";
@@ -37,9 +38,17 @@ export async function POST(request: NextRequest) {
   const provider = process.env.OPENROUTER_API_KEY
     ? new OpenRouterProvider()
     : new StubProvider();
+  const maxTokens =
+    typeof body.maxTokens === "number" &&
+    Number.isFinite(body.maxTokens) &&
+    body.maxTokens >= 256 &&
+    body.maxTokens <= 8192
+      ? Math.floor(body.maxTokens)
+      : undefined;
   try {
     const stream = await provider.stream(body.messages, decision.model, {
       reasoningEffort: body.effort,
+      maxTokens,
     });
     return new Response(stream, {
       headers: {
