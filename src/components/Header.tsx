@@ -73,7 +73,7 @@ export function Header() {
             title={brand.social.x.handle}
           >
             <XIcon />
-            <span>X</span>
+            <span>Follow on X</span>
           </a>
           <div className="mobile-theme">
             <span>Theme</span>
