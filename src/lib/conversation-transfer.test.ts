@@ -52,4 +52,12 @@ describe("conversation transfers", () => {
       ),
     ).toBeUndefined();
   });
+
+  it("imports exports with a reworded warning", () => {
+    const exported = createConversationExport([conversation]);
+    exported.warning = "Updated privacy warning";
+    expect(parseConversationExport(JSON.stringify(exported))).toEqual([
+      conversation,
+    ]);
+  });
 });

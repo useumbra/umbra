@@ -86,7 +86,7 @@ export const parseConversationExport = (
     if (
       value.format !== "umbra-conversations" ||
       value.version !== 1 ||
-      value.warning !== CONVERSATION_EXPORT_WARNING ||
+      typeof value.warning !== "string" ||
       !Array.isArray(value.conversations) ||
       !value.conversations.every(isConversation)
     )

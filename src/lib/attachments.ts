@@ -40,11 +40,9 @@ const readDataUrl = (file: File) =>
   });
 
 const readPdf = async (file: File) => {
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-    import.meta.url,
-  ).toString();
+  const pdfModuleUrl = ["/pdf.min.mjs"].join("");
+  const pdfjs = await import(/* webpackIgnore: true */ pdfModuleUrl);
+  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
   const document = await pdfjs.getDocument({
     data: new Uint8Array(await file.arrayBuffer()),
     useWorkerFetch: false,
@@ -56,7 +54,14 @@ const readPdf = async (file: File) => {
     const content = await page.getTextContent();
     pages.push(
       content.items
-        .map((item) => ("str" in item ? item.str : ""))
+        .map((item: unknown) =>
+          item &&
+          typeof item === "object" &&
+          "str" in item &&
+          typeof item.str === "string"
+            ? item.str
+            : "",
+        )
         .filter(Boolean)
         .join(" "),
     );
