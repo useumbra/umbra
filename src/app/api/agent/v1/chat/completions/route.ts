@@ -92,9 +92,16 @@ export async function POST(request: Request) {
     );
   const messages = normalizeMessages(body.messages);
   const requestedModel = body.model ?? "umbra-auto";
-  const lastPrompt =
+  const lastContent =
     [...messages].reverse().find((message) => message.role === "user")
       ?.content ?? "";
+  const lastPrompt =
+    typeof lastContent === "string"
+      ? lastContent
+      : lastContent
+          .filter((part) => part.type === "text")
+          .map((part) => part.text)
+          .join(" ");
   const decision =
     requestedModel === "umbra-auto"
       ? route(lastPrompt, models)

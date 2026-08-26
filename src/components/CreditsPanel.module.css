@@ -39,6 +39,21 @@
   cursor: pointer;
 }
 
+.walletBalances {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.walletBalances > div {
+  display: grid;
+  gap: 4px;
+}
+
+.walletBalances code {
+  overflow-wrap: anywhere;
+}
+
 .primary {
   color: var(--accent-ink);
   background: var(--accent);

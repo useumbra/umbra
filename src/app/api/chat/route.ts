@@ -4,21 +4,32 @@ import { StubProvider } from "@/lib/providers/stub";
 import type { ReasoningEffort } from "@/lib/providers/types";
 import { models } from "@/config/models";
 import { route } from "@/lib/router";
+import type { ProviderContent } from "@/lib/providers/types";
 export const runtime = "edge";
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
-    messages: { role: "user" | "assistant" | "system"; content: string }[];
+    messages: {
+      role: "user" | "assistant" | "system";
+      content: ProviderContent;
+    }[];
     model?: string;
     effort?: ReasoningEffort;
   };
   // Never log message content at this boundary; prompts are user-private data.
   const requestedModel = body.model ?? "umbra-auto";
-  const lastPrompt =
-    [...body.messages].reverse().find((message) => message.role === "user")
-      ?.content ?? "";
+  const lastPrompt = [...body.messages]
+    .reverse()
+    .find((message) => message.role === "user")?.content;
+  const routingPrompt =
+    typeof lastPrompt === "string"
+      ? lastPrompt
+      : (lastPrompt
+          ?.filter((part) => part.type === "text")
+          .map((part) => part.text)
+          .join(" ") ?? "");
   const decision =
     requestedModel === "umbra-auto"
-      ? route(lastPrompt, models)
+      ? route(routingPrompt, models)
       : {
           model: requestedModel,
           reason: "selected manually",

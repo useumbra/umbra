@@ -3,7 +3,7 @@ export const brand = {
   wordmark: "umbra",
   token: "$UMB",
   chain: { name: "Robinhood Chain", id: 4663 },
-  domain: "useumbra.xyz",
+  domain: "useumbra.org",
   appPath: "/app",
   apiBasePath: "/api/agent/v1",
   products: {

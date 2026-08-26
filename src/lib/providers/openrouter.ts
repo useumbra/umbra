@@ -1,5 +1,6 @@
 import type { Provider, ProviderMessage, ProviderOptions } from "./types";
 import { models } from "@/config/models";
+import { brand } from "@/config/brand";
 export class OpenRouterProvider implements Provider {
   async stream(
     messages: ProviderMessage[],
@@ -18,7 +19,7 @@ export class OpenRouterProvider implements Provider {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://useumbra.xyz",
+          "HTTP-Referer": `https://${brand.domain}`,
         },
         body: JSON.stringify({
           model: chosen.upstreamSlug,

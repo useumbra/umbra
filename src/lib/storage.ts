@@ -1,4 +1,5 @@
 import { openDB, type IDBPDatabase } from "idb";
+import type { AttachmentMetadata } from "./attachments";
 type UmbraDB = {
   conversations: { key: string; value: Conversation };
   settings: { key: string; value: unknown };
@@ -10,6 +11,7 @@ export type ChatMessage = {
   redacted?: string;
   receipt?: import("./privacy").Receipt;
   route?: { model: string; reason: string };
+  attachments?: AttachmentMetadata[];
 };
 export type Conversation = {
   id: string;

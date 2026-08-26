@@ -1,0 +1,90 @@
+.sidebarInput {
+  width: 100%;
+  margin-top: 18px;
+  padding: 10px;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.transfer {
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.transfer strong {
+  font-size: 12px;
+}
+
+.transfer button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.transfer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.conversationList {
+  margin-top: 25px;
+}
+
+.attachments {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.attachment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  color: var(--muted);
+  font-size: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.attachment span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment button {
+  flex: 0 0 auto;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.attachButton {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 7px 9px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.attachmentNotice {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}

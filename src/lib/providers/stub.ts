@@ -7,8 +7,11 @@ export class StubProvider implements Provider {
   ) {
     void model;
     void options;
-    const prompt = messages.at(-1)?.content ?? "";
-    const reply = `I received your protected request${prompt ? " and can help you work through it." : "."} Your private details stayed inside this browser.`;
+    const prompt = messages.at(-1)?.content;
+    const hasPrompt = Array.isArray(prompt)
+      ? prompt.some((part) => part.type === "text" && part.text)
+      : Boolean(prompt);
+    const reply = `I received your protected request${hasPrompt ? " and can help you work through it." : "."} Your private details stayed inside this browser.`;
     return new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
