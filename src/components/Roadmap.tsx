@@ -4,6 +4,7 @@ import { Header } from "./Header";
 const roadmap = [
   {
     status: "Live now",
+    blurb: "Shipped and usable today.",
     items: [
       {
         title: "UmbraChat",
@@ -62,6 +63,7 @@ const roadmap = [
   },
   {
     status: "Waiting on funding",
+    blurb: "Built and wired, blocked on a provider balance.",
     items: [
       {
         title: "UmbraImage and UmbraVideo",
@@ -72,6 +74,7 @@ const roadmap = [
   },
   {
     status: "In progress / next",
+    blurb: "Being worked on now.",
     items: [
       {
         title: "Agentic tool use",
@@ -89,6 +92,7 @@ const roadmap = [
   },
   {
     status: "Planned",
+    blurb: "Intended, without dates or promises.",
     items: [
       {
         title: "On-chain funding",
@@ -137,11 +141,8 @@ export function Roadmap() {
         {roadmap.map((group) => (
           <section className="section roadmap-section" key={group.status}>
             <div className="section-heading">
-              <div>
-                <span className="badge">{group.status}</span>
-                <h2>{group.status}</h2>
-              </div>
-              <p>Current product status, without dates or promises.</p>
+              <h2>{group.status}</h2>
+              <p>{group.blurb}</p>
             </div>
             <div className="feature-grid">
               {group.items.map((item) => (
