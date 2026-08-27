@@ -1,4 +1,4 @@
-import { openDB, type IDBPDatabase } from "idb";
+import { db } from "./db";
 
 export type UsageRecord = {
   date: string;
@@ -15,24 +15,6 @@ export type UsageInput = {
   total_tokens?: unknown;
   cost?: unknown;
 };
-
-type UsageDB = {
-  conversations: { key: string; value: unknown };
-  settings: { key: string; value: unknown };
-  usage: { key: string; value: UsageRecord };
-};
-
-let localDb: Promise<IDBPDatabase<UsageDB>> | undefined;
-const db = () =>
-  (localDb ??= openDB<UsageDB>("umbra-local", 2, {
-    upgrade(database, oldVersion) {
-      if (oldVersion < 1) {
-        database.createObjectStore("conversations");
-        database.createObjectStore("settings");
-      }
-      if (oldVersion < 2) database.createObjectStore("usage");
-    },
-  }));
 
 const numberOrZero = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : 0;

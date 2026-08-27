@@ -1,21 +1,17 @@
-import { openDB, type IDBPDatabase } from "idb";
 import type { AttachmentMetadata } from "./attachments";
 import type { Citation } from "./chat-features";
 import { clearCreditsVault } from "./credits/storage";
+import { db } from "./db";
 import { clearMediaHistory } from "./media-storage";
 import { clearUsage } from "./usage";
-type UmbraDB = {
-  conversations: { key: string; value: Conversation };
-  settings: { key: string; value: unknown };
-  usage: { key: string; value: import("./usage").UsageRecord };
-};
+import type { Receipt, Vault } from "./privacy";
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   redacted?: string;
   error?: string;
-  receipt?: import("./privacy").Receipt;
+  receipt?: Receipt;
   route?: { model: string; reason: string };
   attachments?: AttachmentMetadata[];
   citations?: Citation[];
@@ -29,20 +25,9 @@ export type Conversation = {
   id: string;
   title: string;
   messages: ChatMessage[];
-  vault: ReturnType<import("./privacy").Vault["toJSON"]>;
+  vault: ReturnType<Vault["toJSON"]>;
   updatedAt?: number;
 };
-let dbPromise: Promise<IDBPDatabase<UmbraDB>> | undefined;
-const db = () =>
-  (dbPromise ??= openDB<UmbraDB>("umbra-local", 2, {
-    upgrade(database, oldVersion) {
-      if (oldVersion < 1) {
-        database.createObjectStore("conversations");
-        database.createObjectStore("settings");
-      }
-      if (oldVersion < 2) database.createObjectStore("usage");
-    },
-  }));
 export const getConversations = async () =>
   (await db()).getAll("conversations");
 export const saveConversation = async (conversation: Conversation) =>
