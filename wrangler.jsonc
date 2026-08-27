@@ -6,6 +6,12 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  }
+    "binding": "ASSETS",
+  },
+  "kv_namespaces": [
+    {
+      "binding": "UMBRA_KEYS",
+      "id": "3e215bd9fb7e478e98a4537accbd6d50",
+    },
+  ],
 }

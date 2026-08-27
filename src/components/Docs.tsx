@@ -153,7 +153,14 @@ const topics = [
           Umbra exposes an OpenAI-compatible API at{" "}
           <code>{brand.apiBasePath}</code>. Authenticate with a key in the
           <code> Authorization: Bearer $UMBRA_API_KEY</code> header. The key is
-          checked by the server against its configured API secret.
+          checked by the server against its configured API secret and can be
+          revoked from the developer page.
+        </p>
+        <p>
+          Create and manage keys at <Link href="/developers">Developers</Link>.
+          The full key is shown once and saved only in your browser. Because
+          Umbra has no accounts, possession of a key is the authorization to
+          revoke it; keep keys private.
         </p>
         <pre className="panel docs-code">{`curl https://{your-domain}${brand.apiBasePath}/chat/completions \\
   -H "Authorization: Bearer $UMBRA_API_KEY" \\
@@ -165,8 +172,9 @@ const topics = [
           own redaction before sending prompts.
         </p>
         <p>
-          See the <Link href="/developers">developer guide</Link> for the token
-          shape and the complete model and pricing details.
+          See the <Link href="/developers">developer guide</Link> for key
+          management and the complete model and pricing details. Self-hosters
+          can still sign tokens directly with <code>UMBRA_API_SECRET</code>.
         </p>
       </>
     ),

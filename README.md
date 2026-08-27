@@ -54,7 +54,8 @@ The original prompt stays in the browser; the provider sees `[PERSON_1]`, `[EMAI
 - UmbraImage through fal.ai.
 - UmbraVideo through the fal.ai queue with asynchronous submit and polling; renders take about two minutes.
 - UmbraCode with a sandboxed iframe live preview.
-- OpenAI-compatible API endpoint and API key page.
+- OpenAI-compatible API endpoint with persistent, revocable API keys managed in
+  the developer page.
 - Browser-local encrypted credits vault with a recovery file.
 - Browser-local MCP connectors with manual tool runs and an experimental agentic tool loop capped at three rounds.
 - Read-only Robinhood Chain wallet reads for ETH and USDG.
@@ -165,9 +166,14 @@ Copy `.env.example` to `.env.local` for local development:
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENROUTER_API_KEY` | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys). |
 | `FAL_KEY`            | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).     |
-| `UMBRA_API_SECRET`   | Signs and verifies tokens for the OpenAI-compatible API endpoint.                                                                  |
+| `UMBRA_API_SECRET`   | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                            |
 
 Without `OPENROUTER_API_KEY`, chat uses a deterministic local stub. Without `FAL_KEY`, image and video use deterministic local stubs.
+
+Generated API keys are shown once and stored only in the browser that created
+them. With no accounts, possession of a key is the authorization to revoke it.
+Self-hosted deployments can continue signing tokens directly with
+`UMBRA_API_SECRET`.
 
 ## Verification
 

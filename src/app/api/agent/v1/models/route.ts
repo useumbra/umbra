@@ -3,8 +3,8 @@ import { requireApiAuth } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
 
-export function GET(request: Request) {
-  const unauthorized = requireApiAuth(request);
+export async function GET(request: Request) {
+  const unauthorized = await requireApiAuth(request);
   if (unauthorized) return unauthorized;
   return Response.json({
     object: "list",

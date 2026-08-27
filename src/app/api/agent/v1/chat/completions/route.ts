@@ -73,7 +73,7 @@ const chunk = (id: string, model: string, content: string) =>
   })}\n\n`;
 
 export async function POST(request: Request) {
-  const unauthorized = requireApiAuth(request);
+  const unauthorized = await requireApiAuth(request);
   if (unauthorized) return unauthorized;
   const body = (await request.json()) as {
     model?: string;

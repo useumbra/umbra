@@ -57,6 +57,11 @@ const roadmap = [
         description: "OpenAI-compatible access for your own apps.",
       },
       {
+        title: "API keys",
+        description:
+          "Persistent browser-managed keys with server-side revocation.",
+      },
+      {
         title: "Credits vault",
         description: "An encrypted, browser-only balance with a recovery file.",
       },
@@ -97,10 +102,6 @@ const roadmap = [
       {
         title: "On-chain funding",
         description: "Top up credits on Robinhood Chain.",
-      },
-      {
-        title: "API keys",
-        description: "Persistent, revocable keys for the API.",
       },
       {
         title: "Optional accounts",

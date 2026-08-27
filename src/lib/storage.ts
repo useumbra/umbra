@@ -4,6 +4,7 @@ import { clearCreditsVault } from "./credits/storage";
 import { db } from "./db";
 import { clearMediaHistory } from "./media-storage";
 import { clearUsage } from "./usage";
+import { clearApiKeys } from "./api-keys";
 import type { Receipt, Vault } from "./privacy";
 export type ChatMessage = {
   id: string;
@@ -52,6 +53,11 @@ export const clearLocalData = async () => {
     transaction.objectStore("settings").clear(),
   ]);
   await transaction.done;
-  await Promise.all([clearMediaHistory(), clearCreditsVault(), clearUsage()]);
+  await Promise.all([
+    clearMediaHistory(),
+    clearCreditsVault(),
+    clearUsage(),
+    clearApiKeys(),
+  ]);
   localStorage.removeItem("umbra-theme");
 };

@@ -1,5 +1,6 @@
 import { brand } from "@/config/brand";
 import { models } from "@/config/models";
+import { ApiKeysPanel } from "@/components/ApiKeysPanel";
 import { Header } from "@/components/Header";
 import styles from "@/components/Developers.module.css";
 
@@ -19,27 +20,18 @@ export default function DevelopersPage() {
           API key authorizes requests; prompts are never logged.
         </p>
         <section className="section" style={{ paddingTop: 35 }}>
-          <h2>Get a development key.</h2>
+          <h2>Your API keys.</h2>
           <p>
-            Set <code>UMBRA_API_SECRET</code> on the server, then sign a
-            short-lived token locally. The token is a base64url JSON claims
-            payload followed by an HMAC-SHA256 signature, separated by a dot.
+            Create persistent keys for the OpenAI-compatible API. Keys are
+            revocable and the full value is kept only in this browser. The
+            server stores a short-lived revocation entry, not the key itself.
           </p>
-          <pre className={styles.code}>{`export UMBRA_API_SECRET="replace-me"
-node - <<'NODE'
-const crypto = require("node:crypto");
-const now = Math.floor(Date.now() / 1000);
-const payload = Buffer.from(JSON.stringify({
-  sub: "developer", iat: now, exp: now + 86400
-})).toString("base64url");
-const signature = crypto.createHmac("sha256", process.env.UMBRA_API_SECRET)
-  .update(payload).digest("base64url");
-console.log(payload + "." + signature);
-NODE`}</pre>
+          <ApiKeysPanel />
           <p className="note">
-            In local development without <code>UMBRA_API_SECRET</code>, Umbra
-            generates an ephemeral secret and prints a warning. Tokens from that
-            process stop working after restart.
+            In self-hosted deployments, signing a token with
+            <code> UMBRA_API_SECRET</code> still works for direct
+            administration. Local development without that secret uses an
+            ephemeral process secret.
           </p>
         </section>
         <section className="section" style={{ paddingTop: 35 }}>
