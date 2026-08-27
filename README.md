@@ -8,6 +8,40 @@ Sensitive details are stripped in the browser before any provider sees the promp
 
 Umbra is not a model. It is a privacy boundary and router in front of OpenRouter and fal.ai providers. Conversations, memory, the credits vault, and connectors live in the browser rather than on an Umbra application server.
 
+## Demo
+
+A real UmbraChat session: the prompt carries a name, email, phone, and city, and the privacy receipt shows what the provider actually received.
+
+![UmbraChat answering a prompt with Smart Privacy on](docs/assets/umbrachat-demo.gif)
+
+Full-resolution recording: [`public/demo/umbrachat.mp4`](public/demo/umbrachat.mp4).
+
+## Screenshots
+
+Every screenshot below is production [useumbra.org](https://useumbra.org), not a mockup.
+
+### Landing
+
+![Umbra landing page with animated hero and model marquee](docs/assets/home.webp)
+
+### UmbraChat privacy receipt
+
+The original prompt stays in the browser; the provider sees `[PERSON_1]`, `[EMAIL_1]`, `[PHONE_1]`, `[LOCATION_1]`, and the answer comes back with the real values restored locally.
+
+![Expanded privacy receipt listing four protected values](docs/assets/receipt.webp)
+
+### UmbraImage
+
+![UmbraImage generating an image through fal.ai with local history](docs/assets/image.webp)
+
+### UmbraCode
+
+![UmbraCode generating a tip calculator with a sandboxed live preview](docs/assets/code.webp)
+
+### Leak check
+
+![Leak check scoring a prompt at 60 out of 100 and showing the protected preview](docs/assets/leak.webp)
+
 ## Status
 
 ### What works now
@@ -109,7 +143,7 @@ src/
     └── wallet.ts           # Read-only wallet balance access
 public/                     # Static assets and browser-served PDF.js files
 scripts/                    # Build and development asset preparation
-docs/                       # Project architecture documentation
+docs/                       # Project architecture documentation and README media
 ```
 
 ## Getting started
