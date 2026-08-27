@@ -169,6 +169,9 @@ Copy `.env.example` to `.env.local` for local development:
 | `UMBRA_API_SECRET`           | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                            |
 | `NEXT_PUBLIC_UMBRA_TREASURY` | Enables USDG top-ups to this Robinhood Chain treasury address. Must be a valid EVM address.                                        |
 
+The production treasury is configured in the committed `.env.production`.
+This `NEXT_PUBLIC_` value is public build configuration, not a secret.
+
 Without `OPENROUTER_API_KEY`, chat uses a deterministic local stub. Without `FAL_KEY`, image and video use deterministic local stubs.
 
 Generated API keys are shown once and stored only in the browser that created

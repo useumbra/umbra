@@ -5,8 +5,7 @@ const addressPattern = /^0x[0-9a-fA-F]{40}$/;
 
 export const encodeErc20Transfer = (to: string, amount: bigint) => {
   if (!addressPattern.test(to)) throw new Error("Invalid recipient address");
-  if (amount < BigInt(0))
-    throw new Error("Transfer amount cannot be negative");
+  if (amount < BigInt(0)) throw new Error("Transfer amount cannot be negative");
   const encodedAmount = amount.toString(16);
   if (encodedAmount.length > 64)
     throw new Error("Transfer amount is too large");
