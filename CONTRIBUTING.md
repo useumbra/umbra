@@ -28,7 +28,7 @@ The build and test commands must work without provider credentials. Do not add s
 Branches use the following form:
 
 ```txt
-devin/<timestamp>-<slug>
+umbra/<timestamp>-<slug>
 ```
 
 Use a short imperative commit subject with the conventional prefixes used in this repository, such as `feat:`, `fix:`, `chore:`, or `docs:`.
