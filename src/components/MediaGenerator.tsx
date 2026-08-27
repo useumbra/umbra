@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { brand } from "@/config/brand";
@@ -29,21 +29,39 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
   const [stubMode, setStubMode] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [progress, setProgress] = useState("");
+  const videoAbortRef = useRef<AbortController | undefined>(undefined);
+  const mountedRef = useRef(true);
   useEffect(() => {
+    mountedRef.current = true;
     void getMediaHistory(kind).then(setHistory);
     void fetch(`/api/${kind}`)
       .then((response) => response.json() as Promise<{ stub?: boolean }>)
       .then((body) => setStubMode(body.stub ?? true))
       .catch(() => setStubMode(true));
+    return () => {
+      mountedRef.current = false;
+      videoAbortRef.current?.abort();
+    };
   }, [kind]);
   const title = kind === "image" ? brand.products.image : brand.products.video;
   const generate = async () => {
     if (!prompt.trim() || busy) return;
     setBusy(true);
     setError("");
+    setProgress("");
     const vault = new Vault();
     const protectedPrompt = redact(prompt, vault, mode);
     try {
+      let body: {
+        url?: string;
+        requestId?: string;
+        stub?: boolean;
+        model?: string;
+        error?: string;
+      };
+      const controller = kind === "video" ? new AbortController() : undefined;
+      if (controller) videoAbortRef.current = controller;
       const response = await fetch(`/api/${kind}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,13 +70,48 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
           aspectRatio,
           steps,
         }),
+        signal: controller?.signal,
       });
-      const body = (await response.json()) as {
-        url?: string;
-        stub?: boolean;
-        model?: string;
-        error?: string;
-      };
+      body = (await response.json()) as typeof body;
+      if (!response.ok) throw new Error(body.error ?? "Generation failed");
+      if (kind === "video") {
+        if (!body.requestId) throw new Error("Video request was not queued");
+        const startedAt = Date.now();
+        let status: {
+          state?: "queued" | "running" | "done" | "failed";
+          url?: string;
+          error?: string;
+        } = {};
+        while (Date.now() - startedAt <= 6 * 60 * 1000) {
+          const statusResponse = await fetch(
+            `/api/video?requestId=${encodeURIComponent(body.requestId)}`,
+            { signal: controller?.signal },
+          );
+          status = (await statusResponse.json()) as typeof status;
+          if (!statusResponse.ok)
+            throw new Error(status.error ?? "Video generation failed");
+          const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+          if (status.state === "done" && status.url) {
+            body = { ...body, url: status.url };
+            break;
+          }
+          if (status.state === "failed")
+            throw new Error("Video generation failed");
+          setProgress(`Rendering… ${elapsed}s (video takes ~2 minutes)`);
+          await new Promise<void>((resolve, reject) => {
+            const timer = window.setTimeout(resolve, 3000);
+            controller?.signal.addEventListener(
+              "abort",
+              () => {
+                window.clearTimeout(timer);
+                reject(new DOMException("Aborted", "AbortError"));
+              },
+              { once: true },
+            );
+          });
+        }
+        if (!body.url) throw new Error("Video generation timed out");
+      }
       if (!response.ok || !body.url)
         throw new Error(body.error ?? "Generation failed");
       const item: MediaHistoryItem = {
@@ -77,13 +130,23 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
       setHistory((items) => [item, ...items]);
       await saveMediaHistory(item);
     } catch (generationError) {
+      if (
+        !mountedRef.current &&
+        generationError instanceof DOMException &&
+        generationError.name === "AbortError"
+      )
+        return;
       setError(
         generationError instanceof Error
           ? generationError.message
           : "Generation failed",
       );
     } finally {
-      setBusy(false);
+      videoAbortRef.current = undefined;
+      if (mountedRef.current) {
+        setProgress("");
+        setBusy(false);
+      }
     }
   };
   return (
@@ -103,6 +166,7 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
             Stub mode — add FAL_KEY to enable real generation.
           </div>
         )}
+        {progress && <p className="note">{progress}</p>}
         <textarea
           className={styles.prompt}
           value={prompt}

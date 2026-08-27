@@ -87,8 +87,42 @@ const topics = [
           tools/list, and tools/call.
         </p>
         <p>
-          Discovery and invocation are manual today. Umbra does not
-          automatically choose or run connector tools.
+          Discovery and direct invocation remain available manually. Optional
+          experimental agentic tool use can ask the model to choose from tools
+          you have discovered.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Web search",
+    content: (
+      <>
+        <p>
+          Turn on Web search to ask OpenRouter&apos;s web plugin for grounded
+          answers. The browser sends only the redacted prompt to the search
+          provider through OpenRouter.
+        </p>
+        <p>
+          Returned URL citations are shown beneath the assistant response as
+          links. Search is optional and remains off unless you enable it.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Agentic tool use",
+    content: (
+      <>
+        <p>
+          When enabled, Umbra can ask a connector you registered in this browser
+          to run one of its discovered tools. This feature is experimental and
+          stops after three tool rounds for a turn.
+        </p>
+        <p>
+          Tool arguments are restored before they are sent to your connector.
+          Results are redacted in the browser before they return to the model.
+          Each call is shown with the arguments sent and its redacted result.
         </p>
       </>
     ),

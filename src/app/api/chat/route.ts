@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     model?: string;
     effort?: ReasoningEffort;
     maxTokens?: number;
+    webSearch?: boolean;
   };
   // Never log message content at this boundary; prompts are user-private data.
   const requestedModel = body.model ?? "umbra-auto";
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
     const stream = await provider.stream(body.messages, decision.model, {
       reasoningEffort: body.effort,
       maxTokens,
+      webSearch: body.webSearch === true,
     });
     return new Response(stream, {
       headers: {

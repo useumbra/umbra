@@ -13,6 +13,7 @@ export type ReasoningEffort =
 export type ProviderOptions = {
   reasoningEffort?: ReasoningEffort;
   maxTokens?: number;
+  webSearch?: boolean;
 };
 export interface Provider {
   stream(

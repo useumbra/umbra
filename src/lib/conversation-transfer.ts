@@ -73,6 +73,29 @@ const isConversation = (value: unknown): value is Conversation => {
         }))
     )
       return false;
+    if (
+      message.citations !== undefined &&
+      (!Array.isArray(message.citations) ||
+        !message.citations.every(
+          (citation) =>
+            isRecord(citation) &&
+            typeof citation.url === "string" &&
+            typeof citation.title === "string",
+        ))
+    )
+      return false;
+    if (
+      message.toolCalls !== undefined &&
+      (!Array.isArray(message.toolCalls) ||
+        !message.toolCalls.every(
+          (toolCall) =>
+            isRecord(toolCall) &&
+            typeof toolCall.tool === "string" &&
+            isRecord(toolCall.arguments) &&
+            typeof toolCall.result === "string",
+        ))
+    )
+      return false;
     return true;
   });
 };

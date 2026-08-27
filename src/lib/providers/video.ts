@@ -1,15 +1,28 @@
-import {
-  deterministicSvg,
-  mediaUrl,
-  type ImageRequest,
-  type MediaProvider,
-  type MediaResult,
-} from "./media";
+import { deterministicSvg, mediaUrl, type ImageRequest } from "./media";
 
 const model = "fal-ai/wan/v2.7/text-to-video";
 
-export class FalVideoProvider implements MediaProvider {
-  async generate(request: ImageRequest): Promise<MediaResult> {
+export type VideoStatus = {
+  state: "queued" | "running" | "done" | "failed";
+  url?: string;
+};
+
+export const mapFalVideoStatus = (status: unknown): VideoStatus["state"] =>
+  status === "IN_QUEUE"
+    ? "queued"
+    : status === "IN_PROGRESS"
+      ? "running"
+      : status === "COMPLETED"
+        ? "done"
+        : "failed";
+
+type VideoProvider = {
+  submit(request: ImageRequest): Promise<{ requestId: string; model: string }>;
+  status(requestId: string): Promise<VideoStatus>;
+};
+
+export class FalVideoProvider implements VideoProvider {
+  async submit(request: ImageRequest) {
     const submit = await fetch(`https://queue.fal.run/${model}`, {
       method: "POST",
       headers: {
@@ -34,32 +47,41 @@ export class FalVideoProvider implements MediaProvider {
     };
     if (!queued.request_id || !queued.status_url || !queued.response_url)
       throw new Error("Video provider returned an invalid queue response");
-    for (let attempt = 0; attempt < 240; attempt += 1) {
-      const statusResponse = await fetch(queued.status_url, {
-        headers: { Authorization: `Key ${process.env.FAL_KEY}` },
-      });
-      const status = (await statusResponse.json()) as { status?: string };
-      if (status.status === "COMPLETED") break;
-      if (status.status !== "IN_QUEUE" && status.status !== "IN_PROGRESS")
-        throw new Error("Video generation failed");
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    const resultResponse = await fetch(queued.response_url, {
-      headers: { Authorization: `Key ${process.env.FAL_KEY}` },
-    });
+    return { requestId: queued.request_id, model };
+  }
+
+  async status(requestId: string): Promise<VideoStatus> {
+    const statusResponse = await fetch(
+      `https://queue.fal.run/fal-ai/wan/requests/${encodeURIComponent(requestId)}/status`,
+      { headers: { Authorization: `Key ${process.env.FAL_KEY}` } },
+    );
+    if (!statusResponse.ok) throw new Error("Video status unavailable");
+    const status = (await statusResponse.json()) as { status?: string };
+    const state = mapFalVideoStatus(status.status);
+    if (state !== "done") return { state };
+    const resultResponse = await fetch(
+      `https://queue.fal.run/fal-ai/wan/requests/${encodeURIComponent(requestId)}`,
+      { headers: { Authorization: `Key ${process.env.FAL_KEY}` } },
+    );
     if (!resultResponse.ok) throw new Error("Video result unavailable");
     const url = mediaUrl(await resultResponse.json(), "video");
     if (!url) throw new Error("Video provider returned no video");
-    return { url, stub: false, model };
+    return { state, url };
   }
 }
 
-export class StubVideoProvider implements MediaProvider {
-  async generate(request: ImageRequest): Promise<MediaResult> {
-    return {
-      url: deterministicSvg(request.prompt, "video"),
-      stub: true,
-      model: "umbra-video-stub",
-    };
+export class StubVideoProvider implements VideoProvider {
+  private readonly results = new Map<string, string>();
+
+  async submit(request: ImageRequest) {
+    const requestId = `stub-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    this.results.set(requestId, deterministicSvg(request.prompt, "video"));
+    return { requestId, model: "umbra-video-stub" };
+  }
+
+  async status(requestId: string): Promise<VideoStatus> {
+    const url = this.results.get(requestId);
+    if (!url) return { state: "failed" };
+    return { state: "done", url };
   }
 }

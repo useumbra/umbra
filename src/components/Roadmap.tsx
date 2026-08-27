@@ -12,6 +12,15 @@ const roadmap = [
           "Streaming chat across models, with automatic routing via umbra-auto.",
       },
       {
+        title: "UmbraImage",
+        description: "Generate images through the connected provider.",
+      },
+      {
+        title: "UmbraVideo",
+        description:
+          "Generate videos through the connected provider; renders take about two minutes.",
+      },
+      {
         title: "Smart Privacy",
         description:
           "Browser-side redaction with reversible placeholders and a local receipt.",
@@ -59,16 +68,15 @@ const roadmap = [
         title: "Docs",
         description: "How each surface works and where it runs.",
       },
-    ],
-  },
-  {
-    status: "Waiting on funding",
-    blurb: "Built and wired, blocked on a provider balance.",
-    items: [
       {
-        title: "UmbraImage and UmbraVideo",
+        title: "Agentic tool use",
         description:
-          "Wired to the provider and keyed, but generation fails until the image/video provider balance is topped up.",
+          "Experimental: let a conversation choose and run connector tools.",
+      },
+      {
+        title: "Web search",
+        description:
+          "Experimental: grounded answers with the same browser privacy boundary.",
       },
     ],
   },
@@ -77,16 +85,8 @@ const roadmap = [
     blurb: "Being worked on now.",
     items: [
       {
-        title: "Agentic tool use",
-        description: "Let a conversation choose and run connector tools.",
-      },
-      {
         title: "Smarter memory",
         description: "Suggest entries instead of relying on manual notes.",
-      },
-      {
-        title: "Web search",
-        description: "Grounded answers with the same boundary.",
       },
     ],
   },

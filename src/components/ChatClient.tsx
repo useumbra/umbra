@@ -34,9 +34,121 @@ import {
   type Conversation,
   type ChatMessage,
 } from "@/lib/storage";
+import { getConnectors, type Connector, type McpTool } from "@/lib/connectors";
+import {
+  extractCitations,
+  parseToolCall,
+  schemaSummary,
+  type Citation,
+} from "@/lib/chat-features";
 import type { ProviderMessage } from "@/lib/providers/types";
 import styles from "./ChatClient.module.css";
 const id = () => Math.random().toString(36).slice(2);
+
+const streamCompletion = async ({
+  messages,
+  model,
+  effort,
+  webSearch,
+  signal,
+  onUpdate,
+}: {
+  messages: ProviderMessage[];
+  model: string;
+  effort: string;
+  webSearch: boolean;
+  signal: AbortSignal;
+  onUpdate: (content: string, citations: Citation[]) => void;
+}) => {
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model, effort, messages, webSearch }),
+    signal,
+  });
+  if (!response.ok)
+    throw new Error(`Provider returned HTTP ${response.status}`);
+  if (!response.body) throw new Error("No stream");
+  const routeModel = response.headers.get("X-Umbra-Route-Model");
+  const routeReason = response.headers.get("X-Umbra-Route-Reason");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let raw = "";
+  let pending = "";
+  let done = false;
+  let citations: Citation[] = [];
+  const appendLine = (line: string) => {
+    if (!line || line.startsWith(":")) return;
+    if (line.startsWith("data:")) {
+      const payload = line.startsWith("data: ") ? line.slice(6) : line.slice(5);
+      if (payload === "[DONE]") return;
+      try {
+        const parsed = JSON.parse(payload) as {
+          choices?: {
+            delta?: {
+              content?: unknown;
+              annotations?: unknown;
+            };
+            message?: { annotations?: unknown };
+          }[];
+        };
+        const choice = parsed.choices?.[0];
+        const delta = choice?.delta?.content;
+        if (typeof delta === "string") raw += delta;
+        citations = [
+          ...citations,
+          ...extractCitations(
+            choice?.delta?.annotations ?? choice?.message?.annotations,
+          ),
+        ].filter(
+          (citation, index, all) =>
+            all.findIndex((item) => item.url === citation.url) === index,
+        );
+      } catch {
+        // Ignore malformed provider protocol lines.
+      }
+    } else raw += line;
+    onUpdate(raw, citations);
+  };
+  while (!done) {
+    const result = await reader.read();
+    done = result.done;
+    pending += decoder.decode(result.value, { stream: !done });
+    const lines = pending.split("\n");
+    pending = lines.pop() ?? "";
+    lines.forEach(appendLine);
+    if (done) {
+      appendLine(pending);
+      pending = "";
+    }
+  }
+  return {
+    content: raw,
+    citations,
+    route:
+      routeModel && routeReason
+        ? { model: routeModel, reason: routeReason }
+        : undefined,
+  };
+};
+
+const restoreValue = (value: unknown, vault: Vault): unknown => {
+  if (typeof value === "string") return restore(value, vault);
+  if (Array.isArray(value))
+    return value.map((item) => restoreValue(item, vault));
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        restoreValue(item, vault),
+      ]),
+    );
+  return value;
+};
+
+const toolIdentifier = (connector: Connector, tool: McpTool) =>
+  `${connector.name}/${tool.name}`;
+
 export function ChatClient() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [active, setActive] = useState<Conversation | null>(null);
@@ -61,6 +173,9 @@ export function ChatClient() {
   const [memoryDraft, setMemoryDraft] = useState("");
   const [editingMemoryId, setEditingMemoryId] = useState<string>();
   const [memoryMessage, setMemoryMessage] = useState("");
+  const [webSearch, setWebSearch] = useState(false);
+  const [toolUse, setToolUse] = useState(false);
+  const [connectors, setConnectors] = useState<Connector[]>([]);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | undefined>(undefined);
@@ -72,15 +187,32 @@ export function ChatClient() {
       getSetting("mode", "smart" as const),
       getSetting("model", models[0].id),
       getSetting("effort", "medium"),
+      getSetting("webSearch", false),
+      getSetting("toolUse", false),
       getMemory(),
-    ]).then(([items, savedMode, savedModel, savedEffort, savedMemory]) => {
-      setConversations(items);
-      setMode(savedMode);
-      setModel(savedModel);
-      setEffort(savedEffort);
-      setMemory(savedMemory);
-      if (items[0]) setActive(items[0]);
-    });
+      getConnectors(),
+    ]).then(
+      ([
+        items,
+        savedMode,
+        savedModel,
+        savedEffort,
+        savedWebSearch,
+        savedToolUse,
+        savedMemory,
+        savedConnectors,
+      ]) => {
+        setConversations(items);
+        setMode(savedMode);
+        setModel(savedModel);
+        setEffort(savedEffort);
+        setWebSearch(savedWebSearch);
+        setToolUse(savedToolUse);
+        setMemory(savedMemory);
+        setConnectors(savedConnectors);
+        if (items[0]) setActive(items[0]);
+      },
+    );
   }, []);
   useEffect(() => {
     const element = messagesRef.current;
@@ -156,9 +288,8 @@ export function ChatClient() {
       originalContent += `\n\nAttachment: ${attachment.file.name}\n${visibleText}`;
       protectedContent += `\n\nAttachment: ${attachment.file.name}\n${protectedAttachment.text}`;
       receipts.push(protectedAttachment.receipt);
-      if (visibleText.length < attachment.text.length) {
+      if (visibleText.length < attachment.text.length)
         attachmentMetadata[index].truncated = true;
-      }
     }
     const protectedReceipt = combineReceipts(
       receipts,
@@ -185,6 +316,25 @@ export function ChatClient() {
       messages: [...conversation.messages, user],
       vault: vault.toJSON(),
     };
+    const discoveredTools = connectors.flatMap((connector) =>
+      (connector.tools ?? []).map((tool) => ({
+        connector,
+        tool,
+        name: toolIdentifier(connector, tool),
+      })),
+    );
+    const availableToolNames = discoveredTools.map((item) => item.name);
+    const toolInstructions =
+      toolUse && discoveredTools.length
+        ? [
+            "Available connector tools:",
+            ...discoveredTools.map(
+              ({ tool, name }) =>
+                `- ${name}: ${tool.description || "No description provided."} Schema: ${schemaSummary(tool.inputSchema)}`,
+            ),
+            'To call a tool, reply with a single line of JSON {"tool":"<connector>/<tool>","arguments":{...}} and nothing else. Otherwise answer normally.',
+          ].join("\n")
+        : "";
     setActive(next);
     setDraft("");
     setBusy(true);
@@ -192,18 +342,16 @@ export function ChatClient() {
     const assistant: ChatMessage = { id: id(), role: "assistant", content: "" };
     setActive({ ...next, messages: [...next.messages, assistant] });
     try {
-      const providerMessages: ProviderMessage[] = next.messages.map(
+      const baseProviderMessages: ProviderMessage[] = next.messages.map(
         (message) => ({
           role: message.role,
           content: message.redacted ?? message.content,
         }),
       );
-      if (protectedMemory)
-        providerMessages.unshift({ role: "system", content: protectedMemory });
       const imageAttachments = attachments.filter(
         (attachment) => attachment.metadata.kind === "image",
       );
-      const currentMessage = providerMessages.at(-1);
+      const currentMessage = baseProviderMessages.at(-1);
       if (currentMessage && imageAttachments.length) {
         currentMessage.content = [
           { type: "text", text: protectedContent },
@@ -213,57 +361,110 @@ export function ChatClient() {
           })),
         ];
       }
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const toolResultMessages: ProviderMessage[] = [];
+      let rounds = 0;
+      while (true) {
+        const providerMessages = [...baseProviderMessages];
+        if (protectedMemory)
+          providerMessages.unshift({
+            role: "system",
+            content: protectedMemory,
+          });
+        if (toolInstructions)
+          providerMessages.unshift({
+            role: "system",
+            content: toolInstructions,
+          });
+        providerMessages.push(...toolResultMessages);
+        const completion = await streamCompletion({
+          messages: providerMessages,
           model,
           effort,
-          messages: providerMessages,
-        }),
-        signal: abortRef.current.signal,
-      });
-      if (!response.ok)
-        throw new Error(`Provider returned HTTP ${response.status}`);
-      if (!response.body) throw new Error("No stream");
-      const routeModel = response.headers.get("X-Umbra-Route-Model");
-      const routeReason = response.headers.get("X-Umbra-Route-Reason");
-      if (routeModel && routeReason)
-        assistant.route = { model: routeModel, reason: routeReason };
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let raw = "";
-      let pending = "";
-      let done = false;
-      const appendLine = (line: string) => {
-        if (!line || line.startsWith(":")) return;
-        if (line.startsWith("data:")) {
-          const payload = line.startsWith("data: ")
-            ? line.slice(6)
-            : line.slice(5);
-          if (payload === "[DONE]") return;
-          try {
-            const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
-            if (typeof delta === "string") raw += delta;
-          } catch {
-            // Ignore malformed provider protocol lines.
-          }
-        } else raw += line;
-      };
-      while (!done) {
-        const result = await reader.read();
-        done = result.done;
-        pending += decoder.decode(result.value, { stream: !done });
-        const lines = pending.split("\n");
-        pending = lines.pop() ?? "";
-        lines.forEach(appendLine);
-        if (done) {
-          appendLine(pending);
-          pending = "";
+          webSearch,
+          signal: abortRef.current.signal,
+          onUpdate: (content, citations) => {
+            assistant.content = restore(content, vault);
+            assistant.citations = citations;
+            setActive({
+              ...next,
+              messages: [...next.messages, { ...assistant }],
+            });
+          },
+        });
+        assistant.content = restore(completion.content, vault);
+        assistant.citations = completion.citations;
+        if (completion.route) assistant.route = completion.route;
+        if (!toolUse || !discoveredTools.length) break;
+        const parsed = parseToolCall(completion.content, availableToolNames);
+        if (parsed.kind === "none") break;
+        if (parsed.kind === "invalid") {
+          assistant.error = parsed.error;
+          break;
         }
-        const rendered = restore(raw, vault);
-        assistant.content = rendered;
+        if (rounds >= 3) {
+          assistant.error = "Tool use stopped after 3 rounds.";
+          break;
+        }
+        const selectedTool = discoveredTools.find(
+          (item) => item.name === parsed.tool,
+        );
+        if (!selectedTool) {
+          assistant.error = `Unknown tool requested: ${parsed.tool}`;
+          break;
+        }
+        const sentArguments = restoreValue(parsed.arguments, vault) as Record<
+          string,
+          unknown
+        >;
+        let toolResult: unknown;
+        try {
+          const connector = selectedTool.connector;
+          const response = await fetch("/api/mcp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url: connector.url,
+              method: "tools/call",
+              params: {
+                name: selectedTool.tool.name,
+                arguments: sentArguments,
+              },
+              ...(connector.headerName && connector.headerValue
+                ? {
+                    header: {
+                      name: connector.headerName,
+                      value: connector.headerValue,
+                    },
+                  }
+                : {}),
+            }),
+            signal: abortRef.current.signal,
+          });
+          if (!response.ok)
+            throw new Error(`Tool returned HTTP ${response.status}`);
+          toolResult = await response.json();
+        } catch (error) {
+          assistant.error =
+            error instanceof Error ? error.message : "Tool invocation failed.";
+          break;
+        }
+        const resultText = JSON.stringify(toolResult, null, 2);
+        const protectedResult = redact(resultText, vault, mode).text;
+        assistant.toolCalls = [
+          ...(assistant.toolCalls ?? []),
+          {
+            tool: parsed.tool,
+            arguments: sentArguments,
+            result: protectedResult,
+          },
+        ];
+        assistant.content = "";
         setActive({ ...next, messages: [...next.messages, { ...assistant }] });
+        toolResultMessages.push({
+          role: "system",
+          content: `Tool result for ${parsed.tool}:\n${protectedResult}`,
+        });
+        rounds += 1;
       }
       const finished = {
         ...next,
@@ -334,6 +535,17 @@ export function ChatClient() {
         ),
     );
   }, [conversations, search]);
+  const availableTools = useMemo(
+    () =>
+      connectors.flatMap((connector) =>
+        (connector.tools ?? []).map((tool) => ({
+          connector,
+          tool,
+          name: toolIdentifier(connector, tool),
+        })),
+      ),
+    [connectors],
+  );
   const downloadExport = (items: Conversation[], filename: string) => {
     const blob = new Blob(
       [JSON.stringify(createConversationExport(items), null, 2)],
@@ -661,8 +873,40 @@ export function ChatClient() {
                 <option value="high">Deep</option>
               </select>
             )}
+            <label className={styles.featureToggle}>
+              <input
+                type="checkbox"
+                checked={webSearch}
+                onChange={(event) => {
+                  const enabled = event.target.checked;
+                  setWebSearch(enabled);
+                  void saveSetting("webSearch", enabled);
+                }}
+              />
+              Web search
+            </label>
+            {availableTools.length > 0 && (
+              <label className={styles.featureToggle}>
+                <input
+                  type="checkbox"
+                  checked={toolUse}
+                  onChange={(event) => {
+                    const enabled = event.target.checked;
+                    setToolUse(enabled);
+                    void saveSetting("toolUse", enabled);
+                  }}
+                />
+                Let Umbra use tools <span className="note">(experimental)</span>
+              </label>
+            )}
           </div>
         </div>
+        {webSearch && (
+          <p className={styles.featureNotice}>
+            Your redacted prompt is sent to a search provider through
+            OpenRouter.
+          </p>
+        )}
         <div className="messages" ref={messagesRef}>
           {!activeMessages.length && (
             <div style={{ padding: "20vh 0", textAlign: "center" }}>
@@ -711,6 +955,44 @@ export function ChatClient() {
                     — {message.route.reason}
                   </div>
                 )}
+                {message.role === "assistant" && message.citations?.length ? (
+                  <div className={styles.citations}>
+                    <div className="note">Sources</div>
+                    <ol>
+                      {message.citations.map((citation) => (
+                        <li key={citation.url}>
+                          <a
+                            href={citation.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {citation.title}{" "}
+                            <span className="note">
+                              ({new URL(citation.url).hostname})
+                            </span>
+                          </a>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+                {message.role === "assistant" && message.toolCalls?.length ? (
+                  <div className={styles.toolCalls}>
+                    {message.toolCalls.map((toolCall, index) => (
+                      <details key={`${toolCall.tool}-${index}`}>
+                        <summary>{toolCall.tool}</summary>
+                        <p className="note">
+                          Arguments were sent un-redacted to the connector you
+                          registered.
+                        </p>
+                        <div className="note">Arguments</div>
+                        <pre>{JSON.stringify(toolCall.arguments, null, 2)}</pre>
+                        <div className="note">Result</div>
+                        <pre>{toolCall.result}</pre>
+                      </details>
+                    ))}
+                  </div>
+                ) : null}
                 {message.receipt && (
                   <details style={{ marginTop: 15 }}>
                     <summary className="note">

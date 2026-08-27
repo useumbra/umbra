@@ -29,6 +29,9 @@ export class OpenRouterProvider implements Provider {
           ...(options?.maxTokens !== undefined
             ? { max_tokens: options.maxTokens }
             : {}),
+          ...(options?.webSearch
+            ? { plugins: [{ id: "web", max_results: 3 }] }
+            : {}),
         }),
       },
     );
