@@ -11,6 +11,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: `${brand.name} — private AI, in your browser`,
   description: "A private boundary for conversations with AI.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+  },
 };
 export default function RootLayout({
   children,
