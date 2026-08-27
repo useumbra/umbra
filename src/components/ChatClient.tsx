@@ -149,6 +149,14 @@ const restoreValue = (value: unknown, vault: Vault): unknown => {
 const toolIdentifier = (connector: Connector, tool: McpTool) =>
   `${connector.name}/${tool.name}`;
 
+const citationHost = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "source";
+  }
+};
+
 export function ChatClient() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [active, setActive] = useState<Conversation | null>(null);
@@ -460,10 +468,13 @@ export function ChatClient() {
         ];
         assistant.content = "";
         setActive({ ...next, messages: [...next.messages, { ...assistant }] });
-        toolResultMessages.push({
-          role: "system",
-          content: `Tool result for ${parsed.tool}:\n${protectedResult}`,
-        });
+        toolResultMessages.push(
+          { role: "assistant", content: completion.content },
+          {
+            role: "system",
+            content: `Tool result for ${parsed.tool}:\n${protectedResult}`,
+          },
+        );
         rounds += 1;
       }
       const finished = {
@@ -968,7 +979,7 @@ export function ChatClient() {
                           >
                             {citation.title}{" "}
                             <span className="note">
-                              ({new URL(citation.url).hostname})
+                              ({citationHost(citation.url)})
                             </span>
                           </a>
                         </li>

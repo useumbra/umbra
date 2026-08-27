@@ -75,42 +75,44 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
       body = (await response.json()) as typeof body;
       if (!response.ok) throw new Error(body.error ?? "Generation failed");
       if (kind === "video") {
-        if (!body.requestId) throw new Error("Video request was not queued");
-        const startedAt = Date.now();
-        let status: {
-          state?: "queued" | "running" | "done" | "failed";
-          url?: string;
-          error?: string;
-        } = {};
-        while (Date.now() - startedAt <= 6 * 60 * 1000) {
-          const statusResponse = await fetch(
-            `/api/video?requestId=${encodeURIComponent(body.requestId)}`,
-            { signal: controller?.signal },
-          );
-          status = (await statusResponse.json()) as typeof status;
-          if (!statusResponse.ok)
-            throw new Error(status.error ?? "Video generation failed");
-          const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-          if (status.state === "done" && status.url) {
-            body = { ...body, url: status.url };
-            break;
-          }
-          if (status.state === "failed")
-            throw new Error("Video generation failed");
-          setProgress(`Rendering… ${elapsed}s (video takes ~2 minutes)`);
-          await new Promise<void>((resolve, reject) => {
-            const timer = window.setTimeout(resolve, 3000);
-            controller?.signal.addEventListener(
-              "abort",
-              () => {
-                window.clearTimeout(timer);
-                reject(new DOMException("Aborted", "AbortError"));
-              },
-              { once: true },
+        if (!body.url) {
+          if (!body.requestId) throw new Error("Video request was not queued");
+          const startedAt = Date.now();
+          let status: {
+            state?: "queued" | "running" | "done" | "failed";
+            url?: string;
+            error?: string;
+          } = {};
+          while (Date.now() - startedAt <= 6 * 60 * 1000) {
+            const statusResponse = await fetch(
+              `/api/video?requestId=${encodeURIComponent(body.requestId)}`,
+              { signal: controller?.signal },
             );
-          });
+            status = (await statusResponse.json()) as typeof status;
+            if (!statusResponse.ok)
+              throw new Error(status.error ?? "Video generation failed");
+            const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+            if (status.state === "done" && status.url) {
+              body = { ...body, url: status.url };
+              break;
+            }
+            if (status.state === "failed")
+              throw new Error("Video generation failed");
+            setProgress(`Rendering… ${elapsed}s (video takes ~2 minutes)`);
+            await new Promise<void>((resolve, reject) => {
+              const timer = window.setTimeout(resolve, 3000);
+              controller?.signal.addEventListener(
+                "abort",
+                () => {
+                  window.clearTimeout(timer);
+                  reject(new DOMException("Aborted", "AbortError"));
+                },
+                { once: true },
+              );
+            });
+          }
+          if (!body.url) throw new Error("Video generation timed out");
         }
-        if (!body.url) throw new Error("Video generation timed out");
       }
       if (!response.ok || !body.url)
         throw new Error(body.error ?? "Generation failed");

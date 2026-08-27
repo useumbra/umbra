@@ -60,4 +60,20 @@ describe("conversation transfers", () => {
       conversation,
     ]);
   });
+
+  it("rejects imported citations with non-http URLs", () => {
+    const exported = createConversationExport([
+      {
+        ...conversation,
+        messages: [
+          {
+            ...conversation.messages[0],
+            role: "assistant",
+            citations: [{ url: "not a url", title: "Broken source" }],
+          },
+        ],
+      },
+    ]);
+    expect(parseConversationExport(JSON.stringify(exported))).toBeUndefined();
+  });
 });

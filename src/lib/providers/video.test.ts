@@ -17,5 +17,8 @@ describe("video provider status mapping", () => {
       state: "done",
       url: expect.stringContaining("data:image/svg+xml;base64,"),
     });
+    await expect(provider.status("stub-unknown")).resolves.toEqual({
+      state: "failed",
+    });
   });
 });

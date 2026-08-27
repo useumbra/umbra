@@ -1,4 +1,5 @@
 import type { Conversation } from "./storage";
+import { isHttpUrl } from "./chat-features";
 
 export const CONVERSATION_EXPORT_WARNING =
   "This export contains UNREDACTED original values. Keep it private.";
@@ -79,7 +80,7 @@ const isConversation = (value: unknown): value is Conversation => {
         !message.citations.every(
           (citation) =>
             isRecord(citation) &&
-            typeof citation.url === "string" &&
+            isHttpUrl(citation.url) &&
             typeof citation.title === "string",
         ))
     )

@@ -17,12 +17,22 @@ export const mapFalVideoStatus = (status: unknown): VideoStatus["state"] =>
         : "failed";
 
 type VideoProvider = {
-  submit(request: ImageRequest): Promise<{ requestId: string; model: string }>;
+  submit(request: ImageRequest): Promise<{
+    requestId: string;
+    model: string;
+    url?: string;
+  }>;
   status(requestId: string): Promise<VideoStatus>;
 };
 
+type VideoSubmission = {
+  requestId: string;
+  model: string;
+  url?: string;
+};
+
 export class FalVideoProvider implements VideoProvider {
-  async submit(request: ImageRequest) {
+  async submit(request: ImageRequest): Promise<VideoSubmission> {
     const submit = await fetch(`https://queue.fal.run/${model}`, {
       method: "POST",
       headers: {
@@ -73,10 +83,11 @@ export class FalVideoProvider implements VideoProvider {
 export class StubVideoProvider implements VideoProvider {
   private readonly results = new Map<string, string>();
 
-  async submit(request: ImageRequest) {
+  async submit(request: ImageRequest): Promise<VideoSubmission> {
     const requestId = `stub-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    this.results.set(requestId, deterministicSvg(request.prompt, "video"));
-    return { requestId, model: "umbra-video-stub" };
+    const url = deterministicSvg(request.prompt, "video");
+    this.results.set(requestId, url);
+    return { requestId, model: "umbra-video-stub", url };
   }
 
   async status(requestId: string): Promise<VideoStatus> {

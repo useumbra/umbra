@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       requestId: submitted.requestId,
       model: submitted.model,
       stub: !process.env.FAL_KEY,
+      ...(submitted.url ? { url: submitted.url } : {}),
     });
   } catch {
     return Response.json(

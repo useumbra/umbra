@@ -6,6 +6,16 @@ export type Citation = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+export const isHttpUrl = (value: unknown): value is string => {
+  if (typeof value !== "string") return false;
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export const extractCitations = (value: unknown): Citation[] => {
   if (!Array.isArray(value)) return [];
   const citations: Citation[] = [];
@@ -13,13 +23,8 @@ export const extractCitations = (value: unknown): Citation[] => {
     if (!isRecord(item) || item.type !== "url_citation") continue;
     const citation = item.url_citation;
     if (!isRecord(citation) || typeof citation.url !== "string") continue;
-    let url: URL;
-    try {
-      url = new URL(citation.url);
-    } catch {
-      continue;
-    }
-    if (!["http:", "https:"].includes(url.protocol)) continue;
+    if (!isHttpUrl(citation.url)) continue;
+    const url = new URL(citation.url);
     if (citations.some((entry) => entry.url === url.toString())) continue;
     citations.push({
       url: url.toString(),
