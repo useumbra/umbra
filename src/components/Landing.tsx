@@ -6,10 +6,22 @@ import { brand } from "@/config/brand";
 import { models } from "@/config/models";
 import { Vault, redact } from "@/lib/privacy";
 import { BoundaryArt } from "./BoundaryArt";
+import { DemoVideo } from "./DemoVideo";
 import { Header } from "./Header";
+import { HeroSigil } from "./HeroSigil";
+import { Marquee } from "./Marquee";
+import { ModelHub } from "./ModelHub";
 import { ProductShowcase } from "./ProductShowcase";
 import { Reveal } from "./Reveal";
 import { XIcon } from "./XIcon";
+
+const marqueeItems = [
+  ...models.slice(0, 8).map((model) => model.label),
+  "Smart Privacy",
+  "browser-only memory",
+  "MCP connectors",
+  "OpenAI-compatible API",
+] as const;
 
 const privacySample =
   "Hi, my name is John Smith, my email is john@example.com, my wallet is 0x1234567890123456789012345678901234567890 and I live in Lisbon.";
@@ -66,38 +78,72 @@ export function Landing() {
     <>
       <Header />
       <main className="shell">
-        <section className="hero">
-          <div className="eyebrow hero-entrance">
-            Private intelligence / browser-first
+        <section className="hero hero-split">
+          <div className="hero-copy">
+            <div className="hero-entrance hero-badges">
+              <span className="eyebrow">
+                Private intelligence / browser-first
+              </span>
+              <Link className="hero-pill" href="/docs">
+                <span className="mark">◒</span>
+                <span className="hero-pill-label">how privacy works</span>
+                <span aria-hidden="true">↗</span>
+              </Link>
+            </div>
+            <h1 className="hero-entrance">
+              Your thoughts.
+              <br />
+              <span style={{ color: "var(--accent)" }}>Kept yours.</span>
+            </h1>
+            <p className="hero-entrance">
+              {brand.name} puts a clear boundary between your words and helpful
+              models. Redact in your browser, get an answer, restore your
+              context.
+            </p>
+            <div className="actions hero-entrance">
+              <Link className="button" href={brand.appPath}>
+                Try {brand.products.chat}
+              </Link>
+              <Link className="button secondary" href="/leak-check">
+                Inspect a prompt
+              </Link>
+            </div>
+            <div
+              className="privacy-chips hero-entrance"
+              aria-label="Privacy principles"
+            >
+              <span>zero retention</span>
+              <span>no account</span>
+              <span>no training on your data</span>
+              <span>browser-only memory</span>
+            </div>
           </div>
-          <h1 className="hero-entrance">
-            Your thoughts.
-            <br />
-            <span style={{ color: "var(--accent)" }}>Kept yours.</span>
-          </h1>
-          <p className="hero-entrance">
-            {brand.name} puts a clear boundary between your words and helpful
-            models. Redact in your browser, get an answer, restore your context.
-          </p>
-          <div className="actions hero-entrance">
-            <Link className="button" href={brand.appPath}>
-              Try {brand.products.chat}
-            </Link>
-            <Link className="button secondary" href="/leak-check">
-              Inspect a prompt
-            </Link>
+          <div className="hero-visual hero-entrance">
+            <HeroSigil />
           </div>
-          <div
-            className="privacy-chips hero-entrance"
-            aria-label="Privacy principles"
-          >
-            <span>zero retention</span>
-            <span>no account</span>
-            <span>no training on your data</span>
-            <span>browser-only memory</span>
-          </div>
-          <BoundaryArt />
         </section>
+        <Marquee items={marqueeItems} />
+        <Reveal className="section">
+          <section>
+            <div className="section-heading">
+              <span className="eyebrow">The real thing</span>
+              <h2>This is the actual app.</h2>
+              <p>
+                One prompt with a name, an email, and a city. Watch the receipt:
+                the provider only ever saw placeholders.
+              </p>
+            </div>
+            <DemoVideo />
+            <p className="showcase-link">
+              <Link href={brand.appPath}>Open {brand.products.chat} →</Link>
+            </p>
+          </section>
+        </Reveal>
+        <Reveal className="section">
+          <section>
+            <BoundaryArt />
+          </section>
+        </Reveal>
         <Reveal className="section">
           <section>
             <div className="section-heading">
@@ -191,6 +237,20 @@ export function Landing() {
           </section>
         </Reveal>
         <ProductShowcase />
+        <Reveal className="section">
+          <section>
+            <div className="section-heading">
+              <span className="eyebrow">One private layer</span>
+              <h2>One boundary across every model.</h2>
+              <p>
+                Most apps hand you a single model. {brand.name} keeps one
+                browser-side boundary in front of many models, tools, and
+                surfaces.
+              </p>
+            </div>
+            <ModelHub />
+          </section>
+        </Reveal>
         <Reveal className="section">
           <section>
             <div className="section-heading">
