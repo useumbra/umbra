@@ -74,6 +74,7 @@ export function Landing() {
       "OpenAI-compatible model access for builders.",
       "LIVE NOW",
     ],
+    ["Umbra Connectors", "Bring your own MCP endpoints.", "LIVE NOW"],
   ] as const;
   return (
     <>
@@ -271,6 +272,9 @@ export function Landing() {
                     {name === brand.products.api && (
                       <Link href="/developers">Read the API guide →</Link>
                     )}
+                    {name === "Umbra Connectors" && (
+                      <Link href="/connectors">Open Connectors →</Link>
+                    )}
                   </p>
                 </div>
               ))}
@@ -296,15 +300,37 @@ export function Landing() {
           </section>
         </Reveal>
         <footer>
-          <nav className="footer-links" aria-label="Umbra resources">
-            <Link href="/connectors">Connectors</Link>
-            <Link href="/credits">Credits</Link>
-            <Link href="/developers">Developers</Link>
-            <Link href="/roadmap">Roadmap</Link>
-          </nav>
+          <div className="footer-groups">
+            <div className="footer-group">
+              <span className="footer-group-label">Product</span>
+              <nav className="footer-links" aria-label="Product links">
+                <Link href={brand.appPath}>{brand.products.chat}</Link>
+                <Link href="/image">{brand.products.image}</Link>
+                <Link href="/video">{brand.products.video}</Link>
+                <Link href="/code">{brand.products.code}</Link>
+              </nav>
+            </div>
+            <div className="footer-group">
+              <span className="footer-group-label">Build</span>
+              <nav className="footer-links" aria-label="Build links">
+                <Link href="/developers">Developers</Link>
+                <Link href="/docs">Docs</Link>
+                <Link href="/developers">API</Link>
+              </nav>
+            </div>
+            <div className="footer-group">
+              <span className="footer-group-label">More</span>
+              <nav className="footer-links" aria-label="More links">
+                <Link href="/connectors">Connectors</Link>
+                <Link href="/credits">Credits</Link>
+                <Link href="/roadmap">Roadmap</Link>
+                <Link href="/leak-check">Leak check</Link>
+              </nav>
+            </div>
+          </div>
           <div className="footer-meta">
             <span>
-              {brand.name} / {brand.domain} · Built for clearer boundaries.
+              {brand.name} / {brand.domain}
             </span>{" "}
             <a
               href={brand.social.x.url}

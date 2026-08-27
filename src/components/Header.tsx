@@ -29,9 +29,9 @@ export function Header() {
     ["/docs", "Docs"],
     ["/connectors", "Connectors"],
     ["/credits", "Credits"],
-    ["/developers", "Developers"],
+    ["/developers", "Get an API key"],
     ["/roadmap", "Roadmap"],
-    [brand.appPath, `Open ${brand.products.chat}`],
+    [brand.appPath, "Launch Umbra"],
   ] as const;
   const desktopDestinations = [
     destinations[0],
@@ -39,7 +39,6 @@ export function Header() {
     destinations[2],
     destinations[3],
     destinations[4],
-    destinations[9],
   ] as const;
   return (
     <header className="site-header">
@@ -49,26 +48,33 @@ export function Header() {
       </Link>
       <nav aria-label="Primary navigation">
         {desktopDestinations.map(([href, label]) => (
-          <Link
-            href={href}
-            key={href}
-            className={href === brand.appPath ? "nav-cta" : undefined}
-          >
+          <Link href={href} key={href}>
             {label}
           </Link>
         ))}
+        <Link className="nav-api" href="/developers">
+          Get an API key
+        </Link>
+        <Link className="nav-cta" href={brand.appPath}>
+          Launch Umbra
+        </Link>
         <ThemeToggle />
       </nav>
-      <button
-        className="menu-button"
-        type="button"
-        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-        aria-expanded={open}
-        aria-controls="mobile-navigation"
-        onClick={() => setOpen((value) => !value)}
-      >
-        {open ? "×" : "☰"}
-      </button>
+      <div className="header-mobile-actions">
+        <Link className="mobile-launch" href={brand.appPath}>
+          Launch
+        </Link>
+        <button
+          className="menu-button"
+          type="button"
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? "×" : "☰"}
+        </button>
+      </div>
       {open && (
         <div className="mobile-navigation" id="mobile-navigation">
           {destinations.map(([href, label]) => (
