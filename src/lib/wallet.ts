@@ -1,4 +1,5 @@
 import { chainNetworks } from "../config/chain";
+import { encodeErc20Transfer } from "./funding";
 
 export type Eip1193Provider = {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
@@ -9,6 +10,12 @@ export type WalletBalances = {
   eth: string;
   usdg: string;
   usdgDecimals: number;
+};
+
+export type WalletReceipt = {
+  status?: string;
+  logs?: unknown[];
+  transactionHash?: string;
 };
 
 export type WalletErrorCode =
@@ -75,6 +82,26 @@ const rpcCall = async (method: string, params: unknown[]) => {
       "Robinhood Chain RPC returned an error.",
     );
   return result.result;
+};
+
+const rpcCallValue = async <T>(method: string, params: unknown[]) => {
+  const response = await fetch(chainNetworks.mainnet.rpc, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+  });
+  if (!response.ok)
+    throw new WalletError("RPC_ERROR", "Robinhood Chain RPC is unavailable.");
+  const result = (await response.json()) as {
+    result?: T | null;
+    error?: unknown;
+  };
+  if (result.error || !("result" in result))
+    throw new WalletError(
+      "RPC_ERROR",
+      "Robinhood Chain RPC returned an error.",
+    );
+  return result.result as T | null;
 };
 
 const requestAccounts = async (provider: Eip1193Provider) => {
@@ -156,6 +183,95 @@ const switchToRobinhood = async (provider: Eip1193Provider) => {
   }
 };
 
+let usdgDecimalsPromise: Promise<number> | undefined;
+
+export const getUsdgDecimals = async () => {
+  usdgDecimalsPromise ??= (async () => {
+    const decimalsHex = await rpcCall("eth_call", [
+      { to: chainNetworks.mainnet.usdG, data: "0x313ce567" },
+      "latest",
+    ]);
+    const decimals = Number(hexToBigInt(decimalsHex));
+    if (!Number.isInteger(decimals) || decimals < 0 || decimals > 255)
+      throw new WalletError("RPC_ERROR", "USDG returned invalid decimals.");
+    return decimals;
+  })();
+  return usdgDecimalsPromise;
+};
+
+export const sendUsdgTransfer = async (
+  provider: Eip1193Provider | undefined,
+  { from, to, amount }: { from: string; to: string; amount: bigint },
+): Promise<string> => {
+  if (!provider)
+    throw new WalletError("NO_WALLET", "No compatible wallet was detected.");
+  const data = encodeErc20Transfer(to, amount);
+  if (!/^0x[0-9a-f]{40}$/i.test(from))
+    throw new WalletError(
+      "NO_WALLET",
+      "The connected wallet address is invalid.",
+    );
+  await switchToRobinhood(provider);
+  try {
+    const hash = await provider.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from,
+          to: chainNetworks.mainnet.usdG,
+          data,
+        },
+      ],
+    });
+    if (typeof hash !== "string" || !hash)
+      throw new WalletError(
+        "RPC_ERROR",
+        "The wallet did not return a transaction hash.",
+      );
+    return hash;
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 4001
+    )
+      throw new WalletError("USER_REJECTED", "USDG transfer was rejected.");
+    if (error instanceof WalletError) throw error;
+    throw new WalletError(
+      "RPC_ERROR",
+      error instanceof Error
+        ? error.message
+        : "The wallet could not send the transaction.",
+    );
+  }
+};
+
+export const waitForReceipt = async (
+  hash: string,
+  {
+    timeoutMs = 180_000,
+    intervalMs = 4_000,
+  }: {
+    timeoutMs?: number;
+    intervalMs?: number;
+  } = {},
+): Promise<WalletReceipt> => {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt <= timeoutMs) {
+    const receipt = await rpcCallValue<WalletReceipt>(
+      "eth_getTransactionReceipt",
+      [hash],
+    );
+    if (receipt) return receipt;
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  throw new WalletError(
+    "RPC_ERROR",
+    "Timed out waiting for confirmation. The transaction may still confirm and can be claimed later by hash.",
+  );
+};
+
 export const connectAndReadBalances = async (
   provider: Eip1193Provider | undefined,
 ): Promise<WalletBalances> => {
@@ -163,18 +279,14 @@ export const connectAndReadBalances = async (
     throw new WalletError("NO_WALLET", "No compatible wallet was detected.");
   const address = await requestAccounts(provider);
   await switchToRobinhood(provider);
-  const [ethHex, decimalsHex, usdgHex] = await Promise.all([
+  const [ethHex, decimals, usdgHex] = await Promise.all([
     rpcCall("eth_getBalance", [address, "latest"]),
-    rpcCall("eth_call", [
-      { to: chainNetworks.mainnet.usdG, data: "0x313ce567" },
-      "latest",
-    ]),
+    getUsdgDecimals(),
     rpcCall("eth_call", [
       { to: chainNetworks.mainnet.usdG, data: encodeBalanceOf(address) },
       "latest",
     ]),
   ]);
-  const decimals = Number(hexToBigInt(decimalsHex));
   return {
     address,
     eth: formatUnits(hexToBigInt(ethHex), 18),

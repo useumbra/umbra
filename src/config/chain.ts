@@ -1,3 +1,9 @@
+const configuredTreasury = process.env.NEXT_PUBLIC_UMBRA_TREASURY;
+const treasury =
+  configuredTreasury && /^0x[0-9a-fA-F]{40}$/.test(configuredTreasury)
+    ? configuredTreasury
+    : undefined;
+
 export const chainNetworks = {
   mainnet: {
     name: "Robinhood Chain",
@@ -7,6 +13,7 @@ export const chainNetworks = {
     gasToken: "ETH",
     stack: "Arbitrum Orbit L2",
     usdG: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    treasury,
   },
   testnet: {
     name: "Robinhood Chain Testnet",

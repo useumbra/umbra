@@ -192,11 +192,17 @@ const topics = [
           The credits surface can read wallet balances on{" "}
           {chainNetworks.mainnet.name} (chain ID {chainNetworks.mainnet.chainId}
           ), including USDG at <code>{chainNetworks.mainnet.usdG}</code>. These
-          wallet reads are read-only.
+          wallet reads are read-only. When{" "}
+          <code>NEXT_PUBLIC_UMBRA_TREASURY</code> is configured, you can send
+          USDG to that treasury and claim matching credits after the transfer
+          confirms.
         </p>
         <p className="note">
-          On-chain credit funding is not live yet. The local vault is not an
-          on-chain balance.
+          Sending USDG transfers real funds and does not create an account or
+          imply refunds. The encrypted credits ledger lives only in this
+          browser; clearing local data or losing the recovery file loses the
+          displayed balance. Without the treasury variable, the on-chain top-up
+          form remains unavailable.
         </p>
       </>
     ),

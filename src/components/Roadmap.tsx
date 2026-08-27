@@ -96,13 +96,20 @@ const roadmap = [
     ],
   },
   {
-    status: "Planned",
-    blurb: "Intended, without dates or promises.",
+    status: "Live now",
+    blurb: "Available when the treasury is configured.",
     items: [
       {
         title: "On-chain funding",
-        description: "Top up credits on Robinhood Chain.",
+        description:
+          "Top up local credits with a verified USDG transfer on Robinhood Chain.",
       },
+    ],
+  },
+  {
+    status: "Planned",
+    blurb: "Intended, without dates or promises.",
+    items: [
       {
         title: "Optional accounts",
         description: "Opt-in sync, never required.",

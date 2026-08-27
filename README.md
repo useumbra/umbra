@@ -65,7 +65,7 @@ The original prompt stays in the browser; the provider sees `[PERSON_1]`, `[EMAI
 
 ### What is not done yet
 
-- On-chain credit purchase and unlinkable credits.
+- Unlinkable credits.
 - The `$UMB` token.
 - Agentic tool use has not been tested against a real MCP server.
 - Smarter cross-conversation memory.
@@ -141,7 +141,7 @@ src/
     ├── mcp.ts              # MCP request helpers and validation
     ├── memory.ts           # Browser-local memory
     ├── storage.ts          # Conversation and settings storage
-    └── wallet.ts           # Read-only wallet balance access
+    └── wallet.ts           # Robinhood Chain wallet reads and USDG transfers
 public/                     # Static assets and browser-served PDF.js files
 scripts/                    # Build and development asset preparation
 docs/                       # Project architecture documentation and README media
@@ -162,11 +162,12 @@ Open [http://localhost:3000](http://localhost:3000). The `predev` script copies 
 
 Copy `.env.example` to `.env.local` for local development:
 
-| Variable             | Purpose                                                                                                                            |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENROUTER_API_KEY` | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys). |
-| `FAL_KEY`            | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).     |
-| `UMBRA_API_SECRET`   | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                            |
+| Variable                     | Purpose                                                                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`         | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys). |
+| `FAL_KEY`                    | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).     |
+| `UMBRA_API_SECRET`           | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                            |
+| `NEXT_PUBLIC_UMBRA_TREASURY` | Enables USDG top-ups to this Robinhood Chain treasury address. Must be a valid EVM address.                                        |
 
 Without `OPENROUTER_API_KEY`, chat uses a deterministic local stub. Without `FAL_KEY`, image and video use deterministic local stubs.
 
@@ -174,6 +175,12 @@ Generated API keys are shown once and stored only in the browser that created
 them. With no accounts, possession of a key is the authorization to revoke it.
 Self-hosted deployments can continue signing tokens directly with
 `UMBRA_API_SECRET`.
+
+On-chain USDG funding is available when `NEXT_PUBLIC_UMBRA_TREASURY` is set.
+Transfers send real funds to that treasury, while the resulting credit ledger
+remains encrypted and local to the browser. Clearing local data or losing the
+recovery file loses the displayed balance; there is no implied refund or
+server-held account balance.
 
 ## Verification
 
