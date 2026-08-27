@@ -1,5 +1,10 @@
 import { MediaGenerator } from "@/components/MediaGenerator";
+import { WorkspaceShell } from "@/components/WorkspaceShell";
 
 export default function VideoPage() {
-  return <MediaGenerator kind="video" />;
+  return (
+    <WorkspaceShell>
+      <MediaGenerator kind="video" />
+    </WorkspaceShell>
+  );
 }

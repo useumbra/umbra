@@ -10,7 +10,6 @@ import {
   saveMediaHistory,
   type MediaHistoryItem,
 } from "@/lib/media-storage";
-import { Header } from "./Header";
 import styles from "./MediaGenerator.module.css";
 
 type Kind = "image" | "video";
@@ -153,7 +152,6 @@ export function MediaGenerator({ kind }: { kind: Kind }) {
   };
   return (
     <div className={styles.page}>
-      <Header />
       <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Private creation</div>
         <h1 style={{ marginLeft: 0, fontSize: "clamp(50px, 8vw, 88px)" }}>

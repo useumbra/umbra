@@ -11,7 +11,6 @@ import {
   projectFiles,
   type CodeProject,
 } from "@/lib/code-project";
-import { Header } from "./Header";
 import styles from "./CodeGenerator.module.css";
 
 const coder = models.find((model) => model.id === "qwen-coder") ?? models[0];
@@ -162,7 +161,6 @@ export function CodeGenerator() {
 
   return (
     <div className={styles.page}>
-      <Header />
       <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Private building</div>
         <h1 style={{ marginLeft: 0, fontSize: "clamp(50px, 8vw, 88px)" }}>

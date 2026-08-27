@@ -35,3 +35,5 @@ export const getMediaHistory = async (kind: MediaHistoryItem["kind"]) =>
 
 export const saveMediaHistory = async (item: MediaHistoryItem) =>
   (await db()).put("history", item, item.id);
+
+export const clearMediaHistory = async () => (await db()).clear("history");

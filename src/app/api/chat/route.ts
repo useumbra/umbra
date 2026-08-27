@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     effort?: ReasoningEffort;
     maxTokens?: number;
     webSearch?: boolean;
+    temperature?: number;
   };
   // Never log message content at this boundary; prompts are user-private data.
   const requestedModel = body.model ?? "umbra-auto";
@@ -46,11 +47,19 @@ export async function POST(request: NextRequest) {
     body.maxTokens <= 8192
       ? Math.floor(body.maxTokens)
       : undefined;
+  const temperature =
+    typeof body.temperature === "number" &&
+    Number.isFinite(body.temperature) &&
+    body.temperature >= 0 &&
+    body.temperature <= 2
+      ? body.temperature
+      : undefined;
   try {
     const stream = await provider.stream(body.messages, decision.model, {
       reasoningEffort: body.effort,
       maxTokens,
       webSearch: body.webSearch === true,
+      temperature,
     });
     return new Response(stream, {
       headers: {

@@ -1,5 +1,10 @@
 import { CreditsPanel } from "@/components/CreditsPanel";
+import { WorkspaceShell } from "@/components/WorkspaceShell";
 
 export default function CreditsPage() {
-  return <CreditsPanel />;
+  return (
+    <WorkspaceShell>
+      <CreditsPanel />
+    </WorkspaceShell>
+  );
 }

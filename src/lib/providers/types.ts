@@ -14,6 +14,7 @@ export type ProviderOptions = {
   reasoningEffort?: ReasoningEffort;
   maxTokens?: number;
   webSearch?: boolean;
+  temperature?: number;
 };
 export interface Provider {
   stream(

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Header } from "./Header";
 import {
   getConnectors,
   saveConnectors,
@@ -165,7 +164,6 @@ export function ConnectorsClient() {
   };
   return (
     <div className={styles.page}>
-      <Header />
       <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Browser-local connectors</div>
         <h1>Bring your tools closer.</h1>

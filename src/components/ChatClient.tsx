@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { brand } from "@/config/brand";
 import { models } from "@/config/models";
@@ -44,12 +44,19 @@ import {
 import type { ProviderMessage } from "@/lib/providers/types";
 import styles from "./ChatClient.module.css";
 const id = () => Math.random().toString(36).slice(2);
+const starterPrompts = [
+  "Show me how Umbra redacts sensitive details before a provider sees them.",
+  "Help me map a private workflow across local data and an external AI provider.",
+  "What should I keep in browser-local memory, and what should stay out of it?",
+  "Design a privacy-first review checklist for a small self-hosted project.",
+];
 
 const streamCompletion = async ({
   messages,
   model,
   effort,
   webSearch,
+  temperature,
   signal,
   onUpdate,
 }: {
@@ -57,13 +64,14 @@ const streamCompletion = async ({
   model: string;
   effort: string;
   webSearch: boolean;
+  temperature: number;
   signal: AbortSignal;
   onUpdate: (content: string, citations: Citation[]) => void;
 }) => {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model, effort, messages, webSearch }),
+    body: JSON.stringify({ model, effort, messages, webSearch, temperature }),
     signal,
   });
   if (!response.ok)
@@ -163,6 +171,7 @@ export function ChatClient() {
   const [mode, setMode] = useState<"smart" | "full" | "off">("smart");
   const [model, setModel] = useState(models[0].id);
   const [effort, setEffort] = useState("medium");
+  const [temperature, setTemperature] = useState(0.7);
   const [draft, setDraft] = useState("");
   const [attachments, setAttachments] = useState<AttachmentDraft[]>([]);
   const [attachmentError, setAttachmentError] = useState("");
@@ -184,6 +193,7 @@ export function ChatClient() {
   const [webSearch, setWebSearch] = useState(false);
   const [toolUse, setToolUse] = useState(false);
   const [connectors, setConnectors] = useState<Connector[]>([]);
+  const [tuneOpen, setTuneOpen] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | undefined>(undefined);
@@ -195,6 +205,7 @@ export function ChatClient() {
       getSetting("mode", "smart" as const),
       getSetting("model", models[0].id),
       getSetting("effort", "medium"),
+      getSetting("temperature", 0.7),
       getSetting("webSearch", false),
       getSetting("toolUse", false),
       getMemory(),
@@ -205,6 +216,7 @@ export function ChatClient() {
         savedMode,
         savedModel,
         savedEffort,
+        savedTemperature,
         savedWebSearch,
         savedToolUse,
         savedMemory,
@@ -214,6 +226,7 @@ export function ChatClient() {
         setMode(savedMode);
         setModel(savedModel);
         setEffort(savedEffort);
+        setTemperature(savedTemperature);
         setWebSearch(savedWebSearch);
         setToolUse(savedToolUse);
         setMemory(savedMemory);
@@ -238,18 +251,41 @@ export function ChatClient() {
     const element = messagesRef.current;
     if (element && atLatest) element.scrollTop = element.scrollHeight;
   }, [activeMessages, atLatest]);
-  const start = () => {
+  const start = useCallback(() => {
     const next: Conversation = {
       id: id(),
       title: "New conversation",
       messages: [],
       vault: new Vault().toJSON(),
+      updatedAt: Date.now(),
     };
     setActive(next);
     setConversations((items) => [next, ...items]);
     setSidebarOpen(false);
     void saveConversation(next);
-  };
+  }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "o"
+      ) {
+        event.preventDefault();
+        start();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [start]);
+  useEffect(() => {
+    if (!tuneOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setTuneOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [tuneOpen]);
   const send = async () => {
     if ((!draft.trim() && !attachments.length) || busy) return;
     if (
@@ -270,6 +306,7 @@ export function ChatClient() {
       ).slice(0, 32),
       messages: [],
       vault: new Vault().toJSON(),
+      updatedAt: Date.now(),
     };
     const vault = Vault.fromJSON(conversation.vault);
     const protectedPrompt = redact(draft, vault, mode);
@@ -323,6 +360,7 @@ export function ChatClient() {
           ).slice(0, 32),
       messages: [...conversation.messages, user],
       vault: vault.toJSON(),
+      updatedAt: Date.now(),
     };
     const discoveredTools = connectors.flatMap((connector) =>
       (connector.tools ?? []).map((tool) => ({
@@ -389,6 +427,7 @@ export function ChatClient() {
           model,
           effort,
           webSearch,
+          temperature,
           signal: abortRef.current.signal,
           onUpdate: (content, citations) => {
             assistant.content = restore(content, vault);
@@ -520,7 +559,11 @@ export function ChatClient() {
   const rename = async (conversation: Conversation) => {
     const title = renameValue.trim();
     if (!title) return;
-    const next = { ...conversation, title: title.slice(0, 80) };
+    const next = {
+      ...conversation,
+      title: title.slice(0, 80),
+      updatedAt: Date.now(),
+    };
     await saveConversation(next);
     setConversations((items) =>
       items.map((item) => (item.id === next.id ? next : item)),
@@ -546,6 +589,37 @@ export function ChatClient() {
         ),
     );
   }, [conversations, search]);
+  const groupedConversations = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    ).getTime();
+    const yesterday = startOfToday - 86400000;
+    const previousWeek = startOfToday - 7 * 86400000;
+    const groups = [
+      { label: "Today", items: [] as Conversation[] },
+      { label: "Yesterday", items: [] as Conversation[] },
+      { label: "Previous 7 days", items: [] as Conversation[] },
+      { label: "Older", items: [] as Conversation[] },
+    ];
+    [...filteredConversations]
+      .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+      .forEach((conversation) => {
+        const timestamp = conversation.updatedAt ?? 0;
+        const group =
+          timestamp >= startOfToday
+            ? groups[0]
+            : timestamp >= yesterday
+              ? groups[1]
+              : timestamp >= previousWeek
+                ? groups[2]
+                : groups[3];
+        group.items.push(conversation);
+      });
+    return groups.filter((group) => group.items.length);
+  }, [filteredConversations]);
   const availableTools = useMemo(
     () =>
       connectors.flatMap((connector) =>
@@ -655,7 +729,11 @@ export function ChatClient() {
         >
           Close
         </button>
-        <button className="active" onClick={start}>
+        <button
+          className="active"
+          onClick={start}
+          title="New conversation (Ctrl/Cmd+Shift+O)"
+        >
           ＋ New conversation
         </button>
         <input
@@ -771,57 +849,64 @@ export function ChatClient() {
           {memoryMessage && <p className="note">{memoryMessage}</p>}
         </div>
         <div className={styles.conversationList}>
-          {filteredConversations.map((conversation) => (
-            <div className={styles.conversationRow} key={conversation.id}>
-              {renamingId === conversation.id ? (
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void rename(conversation);
-                  }}
-                >
-                  <input
-                    className={styles.renameInput}
-                    value={renameValue}
-                    autoFocus
-                    onChange={(event) => setRenameValue(event.target.value)}
-                    onBlur={() => {
-                      if (renameValue.trim()) void rename(conversation);
-                      else setRenamingId(undefined);
+          {groupedConversations.map((group) => (
+            <section key={group.label}>
+              <div className="eyebrow">{group.label}</div>
+              {group.items.map((conversation) => (
+                <div className={styles.conversationRow} key={conversation.id}>
+                  {renamingId === conversation.id ? (
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        void rename(conversation);
+                      }}
+                    >
+                      <input
+                        className={styles.renameInput}
+                        value={renameValue}
+                        autoFocus
+                        onChange={(event) => setRenameValue(event.target.value)}
+                        onBlur={() => {
+                          if (renameValue.trim()) void rename(conversation);
+                          else setRenamingId(undefined);
+                        }}
+                        aria-label="Conversation title"
+                      />
+                    </form>
+                  ) : (
+                    <button
+                      className={
+                        conversation.id === active?.id
+                          ? "conversation-active"
+                          : ""
+                      }
+                      onClick={() => {
+                        setActive(conversation);
+                        setSidebarOpen(false);
+                      }}
+                      aria-current={
+                        conversation.id === active?.id ? "page" : undefined
+                      }
+                    >
+                      <span className="conversation-title">
+                        {conversation.title}
+                      </span>
+                    </button>
+                  )}
+                  <button
+                    className={styles.renameButton}
+                    type="button"
+                    aria-label={`Rename ${conversation.title}`}
+                    onClick={() => {
+                      setRenamingId(conversation.id);
+                      setRenameValue(conversation.title);
                     }}
-                    aria-label="Conversation title"
-                  />
-                </form>
-              ) : (
-                <button
-                  className={
-                    conversation.id === active?.id ? "conversation-active" : ""
-                  }
-                  onClick={() => {
-                    setActive(conversation);
-                    setSidebarOpen(false);
-                  }}
-                  aria-current={
-                    conversation.id === active?.id ? "page" : undefined
-                  }
-                >
-                  <span className="conversation-title">
-                    {conversation.title}
-                  </span>
-                </button>
-              )}
-              <button
-                className={styles.renameButton}
-                type="button"
-                aria-label={`Rename ${conversation.title}`}
-                onClick={() => {
-                  setRenamingId(conversation.id);
-                  setRenameValue(conversation.title);
-                }}
-              >
-                Rename
-              </button>
-            </div>
+                  >
+                    Rename
+                  </button>
+                </div>
+              ))}
+            </section>
           ))}
         </div>
         {active && (
@@ -870,32 +955,76 @@ export function ChatClient() {
                 </option>
               ))}
             </select>
-            {selectedModel.capabilities.reasoning && (
-              <select
-                aria-label="Reasoning effort"
-                value={effort}
-                onChange={(event) => {
-                  setEffort(event.target.value);
-                  void saveSetting("effort", event.target.value);
-                }}
+            <div className="tune-wrap">
+              <button
+                className="control"
+                type="button"
+                aria-expanded={tuneOpen}
+                aria-controls="tune-popover"
+                onClick={() => setTuneOpen((value) => !value)}
               >
-                <option value="low">Quick</option>
-                <option value="medium">Balanced</option>
-                <option value="high">Deep</option>
-              </select>
-            )}
-            <label className={styles.featureToggle}>
-              <input
-                type="checkbox"
-                checked={webSearch}
-                onChange={(event) => {
-                  const enabled = event.target.checked;
-                  setWebSearch(enabled);
-                  void saveSetting("webSearch", enabled);
-                }}
-              />
-              Web search
-            </label>
+                Tune
+              </button>
+              {tuneOpen && (
+                <div className="tune-popover" id="tune-popover">
+                  {selectedModel.capabilities.reasoning && (
+                    <label>
+                      Reasoning effort
+                      <select
+                        aria-label="Reasoning effort"
+                        value={effort}
+                        onChange={(event) => {
+                          setEffort(event.target.value);
+                          void saveSetting("effort", event.target.value);
+                        }}
+                      >
+                        <option value="low">Quick</option>
+                        <option value="medium">Balanced</option>
+                        <option value="high">Deep</option>
+                      </select>
+                    </label>
+                  )}
+                  <label>
+                    Temperature{" "}
+                    <output htmlFor="temperature">
+                      {temperature.toFixed(1)}
+                    </output>
+                    <input
+                      id="temperature"
+                      type="range"
+                      min="0"
+                      max="1.5"
+                      step="0.1"
+                      value={temperature}
+                      onChange={(event) => {
+                        const next = Number(event.target.value);
+                        setTemperature(next);
+                        void saveSetting("temperature", next);
+                      }}
+                    />
+                  </label>
+                  <label className={styles.featureToggle}>
+                    <input
+                      type="checkbox"
+                      checked={webSearch}
+                      onChange={(event) => {
+                        const enabled = event.target.checked;
+                        setWebSearch(enabled);
+                        void saveSetting("webSearch", enabled);
+                      }}
+                    />
+                    Web search
+                  </label>
+                  <p className="note">
+                    Provider list price:{" "}
+                    <span>
+                      ${selectedModel.creditPricing.inPer1M} in / $
+                      {selectedModel.creditPricing.outPer1M} out per 1M tokens.
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
             {availableTools.length > 0 && (
               <label className={styles.featureToggle}>
                 <input
@@ -929,6 +1058,17 @@ export function ChatClient() {
                 Write a prompt below. {brand.name} will show exactly what
                 crosses the boundary.
               </p>
+              <div className={styles.starterChips}>
+                {starterPrompts.map((prompt) => (
+                  <button
+                    type="button"
+                    key={prompt}
+                    onClick={() => setDraft(prompt)}
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {activeMessages.map((message) => (

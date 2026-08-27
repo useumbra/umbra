@@ -20,7 +20,6 @@ import {
   type Eip1193Provider,
   type WalletBalances,
 } from "@/lib/wallet";
-import { Header } from "./Header";
 import styles from "./CreditsPanel.module.css";
 
 const emptyVault: CreditVaultData = { ledger: [] };
@@ -134,7 +133,6 @@ export function CreditsPanel() {
   };
   return (
     <div className={styles.page}>
-      <Header />
       <main className={`shell ${styles.content}`}>
         <div className="eyebrow">Browser-only credits</div>
         <h1 style={{ marginLeft: 0, fontSize: "clamp(50px, 8vw, 88px)" }}>

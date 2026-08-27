@@ -26,6 +26,7 @@ export type Conversation = {
   title: string;
   messages: ChatMessage[];
   vault: ReturnType<import("./privacy").Vault["toJSON"]>;
+  updatedAt?: number;
 };
 let dbPromise: Promise<IDBPDatabase<UmbraDB>> | undefined;
 const db = () =>
@@ -47,3 +48,22 @@ export const getSetting = async <T>(key: string, fallback: T) => {
 };
 export const saveSetting = async (key: string, value: unknown) =>
   (await db()).put("settings", value, key);
+
+export const clearLocalData = async () => {
+  const database = await db();
+  const transaction = database.transaction(
+    ["conversations", "settings"],
+    "readwrite",
+  );
+  await Promise.all([
+    transaction.objectStore("conversations").clear(),
+    transaction.objectStore("settings").clear(),
+  ]);
+  await transaction.done;
+  const [{ clearMediaHistory }, { clearCreditsVault }] = await Promise.all([
+    import("./media-storage"),
+    import("./credits/storage"),
+  ]);
+  await Promise.all([clearMediaHistory(), clearCreditsVault()]);
+  localStorage.removeItem("umbra-theme");
+};

@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Header } from "./Header";
 import { XIcon } from "./XIcon";
 import { Vault, redact, scoreLeaks } from "@/lib/privacy";
 import { brand } from "@/config/brand";
@@ -22,7 +21,6 @@ export function LeakChecker() {
   );
   return (
     <>
-      <Header />
       <main className="shell">
         <section
           className="hero"

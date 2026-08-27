@@ -32,6 +32,9 @@ export class OpenRouterProvider implements Provider {
           ...(options?.webSearch
             ? { plugins: [{ id: "web", max_results: 3 }] }
             : {}),
+          ...(options?.temperature !== undefined
+            ? { temperature: Math.min(2, Math.max(0, options.temperature)) }
+            : {}),
         }),
       },
     );

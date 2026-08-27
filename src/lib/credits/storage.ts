@@ -17,3 +17,5 @@ export const loadEncryptedVault = async () =>
   (await db()).get("vault", "local");
 export const saveEncryptedVault = async (vault: EncryptedVault) =>
   (await db()).put("vault", vault, "local");
+
+export const clearCreditsVault = async () => (await db()).clear("vault");

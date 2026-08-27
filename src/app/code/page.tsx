@@ -1,5 +1,10 @@
 import { CodeGenerator } from "@/components/CodeGenerator";
+import { WorkspaceShell } from "@/components/WorkspaceShell";
 
 export default function CodePage() {
-  return <CodeGenerator />;
+  return (
+    <WorkspaceShell>
+      <CodeGenerator />
+    </WorkspaceShell>
+  );
 }
