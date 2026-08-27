@@ -6,6 +6,10 @@ export const brand = {
   domain: "useumbra.org",
   social: {
     x: { handle: "@use_umbra", url: "https://x.com/use_umbra" },
+    github: {
+      handle: "useumbra/umbra",
+      url: "https://github.com/useumbra/umbra",
+    },
   },
   appPath: "/app",
   apiBasePath: "/api/agent/v1",

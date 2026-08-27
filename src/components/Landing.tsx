@@ -14,6 +14,7 @@ import { ModelHub } from "./ModelHub";
 import { ProductShowcase } from "./ProductShowcase";
 import { Reveal } from "./Reveal";
 import { XIcon } from "./XIcon";
+import { GitHubIcon } from "./GitHubIcon";
 
 const marqueeItems = [
   ...models.slice(0, 8).map((model) => model.label),
@@ -314,6 +315,16 @@ export function Landing() {
               title={brand.social.x.handle}
             >
               <XIcon />
+            </a>
+            <a
+              href={brand.social.github.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-link"
+              aria-label={`${brand.name} on GitHub`}
+              title={brand.social.github.handle}
+            >
+              <GitHubIcon />
             </a>
           </div>
         </footer>

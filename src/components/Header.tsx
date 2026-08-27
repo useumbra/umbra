@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { brand } from "@/config/brand";
 import { ThemeToggle } from "./ThemeToggle";
 import { XIcon } from "./XIcon";
+import { GitHubIcon } from "./GitHubIcon";
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -85,6 +86,17 @@ export function Header() {
           >
             <XIcon />
             <span>Follow on X</span>
+          </a>
+          <a
+            href={brand.social.github.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+            aria-label={`${brand.name} on GitHub`}
+            title={brand.social.github.handle}
+          >
+            <GitHubIcon />
+            <span>Source on GitHub</span>
           </a>
           <div className="mobile-theme">
             <span>Theme</span>

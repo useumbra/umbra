@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { XIcon } from "./XIcon";
+import { GitHubIcon } from "./GitHubIcon";
 import { Vault, redact, scoreLeaks } from "@/lib/privacy";
 import { brand } from "@/config/brand";
 const samples = {
@@ -129,6 +130,16 @@ export function LeakChecker() {
             title={brand.social.x.handle}
           >
             <XIcon />
+          </a>
+          <a
+            href={brand.social.github.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+            aria-label={`${brand.name} on GitHub`}
+            title={brand.social.github.handle}
+          >
+            <GitHubIcon />
           </a>
         </footer>
       </main>
