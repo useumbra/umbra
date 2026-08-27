@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest a focused improvement to Umbra.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the behavior you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or alternatives have you tried?
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy impact
+      description: Would this change what leaves the browser or how local data is stored?

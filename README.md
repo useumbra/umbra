@@ -1,36 +1,176 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Umbra
 
-## Getting Started
+[![GitHub stars](https://img.shields.io/github/stars/useumbra/umbra?style=social)](https://github.com/useumbra/umbra)
 
-First, run the development server:
+[Docs](https://useumbra.org/docs) · [Roadmap](https://useumbra.org/roadmap) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Sensitive details are stripped in the browser before any provider sees the prompt.
+
+Umbra is not a model. It is a privacy boundary and router in front of OpenRouter and fal.ai providers. Conversations, memory, the credits vault, and connectors live in the browser rather than on an Umbra application server.
+
+## Status
+
+### What works now
+
+- Browser-side Smart Privacy engine with 17 detectors, Smart/Full/Off modes, and reversible placeholders.
+- Streaming chat through OpenRouter with `umbra-auto` model routing.
+- Optional web-search grounding with source citations.
+- Browser-local Umbra Memory.
+- File, PDF, and image attachments extracted and redacted in the browser.
+- UmbraImage through fal.ai.
+- UmbraVideo through the fal.ai queue with asynchronous submit and polling; renders take about two minutes.
+- UmbraCode with a sandboxed iframe live preview.
+- OpenAI-compatible API endpoint and API key page.
+- Browser-local encrypted credits vault with a recovery file.
+- Browser-local MCP connectors with manual tool runs and an experimental agentic tool loop capped at three rounds.
+- Read-only Robinhood Chain wallet reads for ETH and USDG.
+- Conversation search, export, and import.
+- `/leak-check` diagnostics.
+- `/docs` and `/roadmap`.
+
+### What is not done yet
+
+- On-chain credit purchase and unlinkable credits.
+- The `$UMB` token.
+- Agentic tool use has not been tested against a real MCP server.
+- Smarter cross-conversation memory.
+- No automated end-to-end browser test suite.
+
+## Repository layout
+
+```txt
+src/
+├── app/                    # Next.js App Router pages and API routes
+│   ├── api/                # Chat, media, MCP, and OpenAI-compatible endpoints
+│   │   ├── agent/v1/       # OpenAI-compatible chat and model routes
+│   │   ├── chat/           # Streaming chat route
+│   │   ├── code/           # Code generation route
+│   │   ├── image/          # Image generation route
+│   │   ├── mcp/            # Browser connector proxy
+│   │   └── video/          # Video queue submit and status routes
+│   ├── app/page.tsx        # UmbraChat workspace
+│   ├── code/page.tsx       # UmbraCode workspace
+│   ├── connectors/page.tsx # Browser-local MCP connector manager
+│   ├── credits/page.tsx    # Local credits vault and wallet reads
+│   ├── developers/page.tsx # API key and model information
+│   ├── docs/page.tsx       # Product documentation
+│   ├── image/page.tsx      # UmbraImage workspace
+│   ├── leak-check/page.tsx # Local privacy diagnostics
+│   ├── roadmap/page.tsx    # Product status and roadmap
+│   ├── video/page.tsx      # UmbraVideo workspace
+│   ├── page.tsx            # Landing page
+│   ├── apple-icon.png      # Raster Apple touch icon
+│   ├── icon.png            # Raster application icon
+│   ├── icon.svg            # Vector application icon
+│   ├── layout.tsx          # Root metadata and layout
+│   └── globals.css         # Global styles
+├── components/             # Page and client interface components
+│   ├── Background.tsx      # Animated page background
+│   ├── BoundaryArt.tsx     # Privacy boundary illustration
+│   ├── ChatClient.tsx      # Chat, search, memory, citations, and tool loop
+│   ├── ChatClient.module.css # Chat styles
+│   ├── CodeGenerator.tsx   # Code generation and sandbox preview
+│   ├── CodeGenerator.module.css # Code styles
+│   ├── ConnectorsClient.tsx # Connector discovery and manual tool runs
+│   ├── ConnectorsClient.module.css # Connector styles
+│   ├── CreditsPanel.tsx    # Encrypted vault and wallet UI
+│   ├── CreditsPanel.module.css # Credits styles
+│   ├── DemoVideo.tsx       # Landing-page demo video
+│   ├── Developers.module.css # Developer page styles
+│   ├── Docs.tsx            # Documentation content
+│   ├── Header.tsx          # Site navigation
+│   ├── HeroSigil.tsx       # Landing-page mark
+│   ├── Landing.tsx        # Landing-page content
+│   ├── LeakChecker.tsx     # Local privacy diagnostics UI
+│   ├── Marquee.tsx         # Landing-page marquee
+│   ├── MediaGenerator.tsx  # Image and video generation client
+│   ├── MediaGenerator.module.css # Media styles
+│   ├── ModelHub.tsx        # Model selection content
+│   ├── ProductShowcase.tsx # Product showcase content
+│   ├── Reveal.tsx          # Scroll reveal wrapper
+│   ├── Roadmap.tsx         # Roadmap content
+│   ├── ThemeToggle.tsx     # Theme preference control
+│   ├── XIcon.tsx           # X social icon
+│   └── background.css      # Background styles
+├── config/                 # Brand, chain, and model configuration
+│   ├── brand.ts            # Umbra product and domain settings
+│   ├── chain.ts            # Robinhood Chain settings
+│   └── models.ts           # Available model routes and pricing
+└── lib/                    # Privacy, storage, providers, routing, and utilities
+    ├── privacy/            # Detectors, vaults, redaction, and restoration
+    ├── providers/          # OpenRouter, fal.ai, and deterministic adapters
+    ├── credits/            # Encrypted vault storage and pricing
+    ├── attachments.ts      # Browser-side text, PDF, and image extraction
+    ├── chat-features.ts    # Citation and tool-call parsing
+    ├── connectors.ts       # Browser-local connector storage
+    ├── mcp.ts              # MCP request helpers and validation
+    ├── memory.ts           # Browser-local memory
+    ├── storage.ts          # Conversation and settings storage
+    └── wallet.ts           # Read-only wallet balance access
+public/                     # Static assets and browser-served PDF.js files
+scripts/                    # Build and development asset preparation
+docs/                       # Project architecture documentation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Umbra requires Node 22.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000). The `predev` script copies the PDF.js worker and module into `public/` for browser-side PDF extraction.
 
-To learn more about Next.js, take a look at the following resources:
+## Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Copy `.env.example` to `.env.local` for local development:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable             | Purpose                                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY` | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys). |
+| `FAL_KEY`            | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).     |
+| `UMBRA_API_SECRET`   | Signs and verifies tokens for the OpenAI-compatible API endpoint.                                                                  |
 
-## Deploy on Vercel
+Without `OPENROUTER_API_KEY`, chat uses a deterministic local stub. Without `FAL_KEY`, image and video use deterministic local stubs.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx tsc --noEmit
+npm run lint
+npm run format:check
+npm run test
+npm run build
+```
+
+## Deployment
+
+Umbra runs on Cloudflare Workers using OpenNext. Build and promote a version explicitly:
+
+```bash
+npx opennextjs-cloudflare build
+npx wrangler versions upload
+npx wrangler versions deploy <version-id>@100%
+```
+
+Plain `wrangler deploy` has left production serving stale assets, so versions must be uploaded and explicitly promoted. Worker secrets are configured with `wrangler secret put`; secret values and account credentials do not belong in this repository.
+
+## Privacy model
+
+### What leaves the browser
+
+For normal chat and search, the redacted prompt and any redacted attachment or memory text sent with it leave the browser. The provider receives the protected conversation content through the relevant API route.
+
+### What never leaves the browser
+
+Original values, the placeholder map, browser-local memory, the encrypted credits vault, and the connector registry stay in browser storage. Umbra does not store conversations or connector configuration on an application server.
+
+### Deliberate connector exception
+
+When the user enables experimental agentic tool use, tool arguments are restored to their original values before being sent to the connector the user registered. Connector results are redacted in the browser before returning to the model. Manual connector invocation is also initiated by the browser.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
