@@ -80,7 +80,7 @@ src/
 │   ├── Docs.tsx            # Documentation content
 │   ├── Header.tsx          # Site navigation
 │   ├── HeroSigil.tsx       # Landing-page mark
-│   ├── Landing.tsx        # Landing-page content
+│   ├── Landing.tsx         # Landing-page content
 │   ├── LeakChecker.tsx     # Local privacy diagnostics UI
 │   ├── Marquee.tsx         # Landing-page marquee
 │   ├── MediaGenerator.tsx  # Image and video generation client

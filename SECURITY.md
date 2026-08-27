@@ -6,7 +6,7 @@ Umbra is pre-1.0. Security fixes are supported on the latest `0.1.x` source on t
 
 ## Reporting a vulnerability
 
-Report vulnerabilities through a GitHub private security advisory for [usembra/umbra](https://github.com/usembra/umbra/security/advisories/new). Do not open a public issue for a vulnerability or include secrets or personal data in a report.
+Report vulnerabilities through a GitHub private security advisory for [useumbra/umbra](https://github.com/useumbra/umbra/security/advisories/new). Do not open a public issue for a vulnerability or include secrets or personal data in a report.
 
 Include a concise description, affected route or component, reproduction steps that use synthetic data, and an assessment of the impact. Allow time for triage and remediation before public disclosure.
 
