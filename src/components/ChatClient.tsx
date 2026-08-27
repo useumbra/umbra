@@ -41,6 +41,7 @@ import {
   schemaSummary,
   type Citation,
 } from "@/lib/chat-features";
+import { recordUsage, type UsageInput } from "@/lib/usage";
 import type { ProviderMessage } from "@/lib/providers/types";
 import styles from "./ChatClient.module.css";
 const id = () => Math.random().toString(36).slice(2);
@@ -85,6 +86,7 @@ const streamCompletion = async ({
   let pending = "";
   let done = false;
   let citations: Citation[] = [];
+  let usageFromStream: UsageInput | undefined;
   const appendLine = (line: string) => {
     if (!line || line.startsWith(":")) return;
     if (line.startsWith("data:")) {
@@ -99,7 +101,9 @@ const streamCompletion = async ({
             };
             message?: { annotations?: unknown };
           }[];
+          usage?: UsageInput;
         };
+        if (parsed.usage) usageFromStream = parsed.usage;
         const choice = parsed.choices?.[0];
         const delta = choice?.delta?.content;
         if (typeof delta === "string") raw += delta;
@@ -133,6 +137,7 @@ const streamCompletion = async ({
   return {
     content: raw,
     citations,
+    usage: usageFromStream,
     route:
       routeModel && routeReason
         ? { model: routeModel, reason: routeReason }
@@ -438,6 +443,8 @@ export function ChatClient() {
             });
           },
         });
+        if (completion.usage)
+          void recordUsage(completion.route?.model ?? model, completion.usage);
         assistant.content = restore(completion.content, vault);
         assistant.citations = completion.citations;
         if (completion.route) assistant.route = completion.route;

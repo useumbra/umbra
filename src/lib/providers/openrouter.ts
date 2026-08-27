@@ -25,6 +25,7 @@ export class OpenRouterProvider implements Provider {
           model: chosen.upstreamSlug,
           messages,
           stream: true,
+          usage: { include: true },
           ...(reasoning ? { reasoning } : {}),
           ...(options?.maxTokens !== undefined
             ? { max_tokens: options.maxTokens }

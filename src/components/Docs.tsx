@@ -128,6 +128,24 @@ const topics = [
     ),
   },
   {
+    title: "Council, models, and usage",
+    content: (
+      <>
+        <p>
+          UmbraCouncil sends one browser-redacted brief to up to three model
+          seats in parallel. Its runs stay in memory and are not saved as
+          conversations. The <Link href="/models">model catalog</Link> lists the
+          configured models and their declared capabilities.
+        </p>
+        <p>
+          The <Link href="/usage">usage dashboard</Link> stores only
+          provider-reported token counts and cost by day and model in this
+          browser. It never stores prompt or response text.
+        </p>
+      </>
+    ),
+  },
+  {
     title: "Umbra API",
     content: (
       <>

@@ -1,0 +1,125 @@
+.page {
+  min-height: 100vh;
+  padding: 70px 28px 90px;
+}
+
+.content {
+  max-width: 1220px;
+  margin: 0 auto;
+}
+
+.intro {
+  max-width: 680px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.toolbar {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 28px 0 18px;
+}
+
+.search,
+.sort,
+.chip {
+  min-height: 38px;
+  padding: 8px 11px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.search {
+  min-width: min(100%, 300px);
+  flex: 1;
+}
+
+.chip {
+  cursor: pointer;
+}
+
+.active {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  gap: 13px;
+}
+
+.card {
+  min-width: 0;
+  padding: 18px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: baseline;
+}
+
+.description {
+  margin: 7px 0 17px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.specs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.specs div {
+  min-width: 0;
+}
+
+.specs dt {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.specs dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.badge {
+  padding: 4px 7px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  font-size: 11px;
+}
+
+.empty {
+  padding: 45px 20px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 45px 15px 65px;
+  }
+
+  .specs {
+    grid-template-columns: 1fr;
+  }
+}

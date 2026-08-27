@@ -3,9 +3,11 @@ import type { AttachmentMetadata } from "./attachments";
 import type { Citation } from "./chat-features";
 import { clearCreditsVault } from "./credits/storage";
 import { clearMediaHistory } from "./media-storage";
+import { clearUsage } from "./usage";
 type UmbraDB = {
   conversations: { key: string; value: Conversation };
   settings: { key: string; value: unknown };
+  usage: { key: string; value: import("./usage").UsageRecord };
 };
 export type ChatMessage = {
   id: string;
@@ -32,10 +34,13 @@ export type Conversation = {
 };
 let dbPromise: Promise<IDBPDatabase<UmbraDB>> | undefined;
 const db = () =>
-  (dbPromise ??= openDB<UmbraDB>("umbra-local", 1, {
-    upgrade(database) {
-      database.createObjectStore("conversations");
-      database.createObjectStore("settings");
+  (dbPromise ??= openDB<UmbraDB>("umbra-local", 2, {
+    upgrade(database, oldVersion) {
+      if (oldVersion < 1) {
+        database.createObjectStore("conversations");
+        database.createObjectStore("settings");
+      }
+      if (oldVersion < 2) database.createObjectStore("usage");
     },
   }));
 export const getConversations = async () =>
@@ -62,6 +67,6 @@ export const clearLocalData = async () => {
     transaction.objectStore("settings").clear(),
   ]);
   await transaction.done;
-  await Promise.all([clearMediaHistory(), clearCreditsVault()]);
+  await Promise.all([clearMediaHistory(), clearCreditsVault(), clearUsage()]);
   localStorage.removeItem("umbra-theme");
 };

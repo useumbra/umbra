@@ -12,7 +12,16 @@ type WorkspaceShellProps = {
 };
 
 type WorkspaceIconName =
-  "chat" | "image" | "video" | "code" | "connectors" | "credits" | "leak";
+  | "chat"
+  | "image"
+  | "video"
+  | "code"
+  | "council"
+  | "connectors"
+  | "credits"
+  | "models"
+  | "usage"
+  | "leak";
 
 const workspaceLinks: {
   href: string;
@@ -23,6 +32,7 @@ const workspaceLinks: {
   { href: "/image", label: "Image", icon: "image" },
   { href: "/video", label: "Video", icon: "video" },
   { href: "/code", label: "Code", icon: "code" },
+  { href: "/council", label: "Council", icon: "council" },
 ];
 
 const toolLinks: {
@@ -32,6 +42,8 @@ const toolLinks: {
 }[] = [
   { href: "/connectors", label: "Connectors", icon: "connectors" },
   { href: "/credits", label: "Credits", icon: "credits" },
+  { href: "/models", label: "Models", icon: "models" },
+  { href: "/usage", label: "Usage", icon: "usage" },
   { href: "/leak-check", label: "Leak check", icon: "leak" },
 ];
 
@@ -64,6 +76,17 @@ function WorkspaceIcon({ name }: { name: WorkspaceIconName }) {
         <path d="m7 5-4 5 4 5M13 5l4 5-4 5M11.5 3.5l-3 13" />
       </svg>
     );
+  if (name === "council")
+    return (
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="10" cy="10" r="2" />
+        <circle cx="4.5" cy="5" r="1.5" />
+        <circle cx="15.5" cy="5" r="1.5" />
+        <circle cx="4.5" cy="15" r="1.5" />
+        <circle cx="15.5" cy="15" r="1.5" />
+        <path d="m6 6.2 2.5 2.5M14 6.2l-2.5 2.5M6 13.8l2.5-2.5M14 13.8l-2.5-2.5" />
+      </svg>
+    );
   if (name === "connectors")
     return (
       <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -75,6 +98,23 @@ function WorkspaceIcon({ name }: { name: WorkspaceIconName }) {
       <svg viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="6.5" />
         <path d="M10 6.5v7M12.5 8.25c-.5-.5-1.25-.75-2.25-.75-1.25 0-2 .5-2 1.25 0 1.75 4.25.75 4.25 2.5 0 .75-.75 1.25-2.25 1.25-1 0-1.75-.25-2.25-.75" />
+      </svg>
+    );
+  if (name === "models")
+    return (
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="3" y="4" width="5" height="5" rx="1" />
+        <rect x="12" y="4" width="5" height="5" rx="1" />
+        <rect x="3" y="12" width="5" height="5" rx="1" />
+        <rect x="12" y="12" width="5" height="5" rx="1" />
+        <path d="M8 6.5h4M8 14.5h4M5.5 9v3" />
+      </svg>
+    );
+  if (name === "usage")
+    return (
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M4 16V9M10 16V4M16 16v-6" />
+        <path d="M3 16.5h14" />
       </svg>
     );
   return (
