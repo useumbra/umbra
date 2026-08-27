@@ -715,6 +715,11 @@ footer {
     flex: 1 1 150px;
   }
 
+  .chat-controls label {
+    flex: 0 0 100%;
+    min-height: 32px;
+  }
+
   .messages {
     min-height: 0;
     overflow-y: auto;
