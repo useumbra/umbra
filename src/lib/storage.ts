@@ -1,6 +1,8 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { AttachmentMetadata } from "./attachments";
 import type { Citation } from "./chat-features";
+import { clearCreditsVault } from "./credits/storage";
+import { clearMediaHistory } from "./media-storage";
 type UmbraDB = {
   conversations: { key: string; value: Conversation };
   settings: { key: string; value: unknown };
@@ -60,10 +62,6 @@ export const clearLocalData = async () => {
     transaction.objectStore("settings").clear(),
   ]);
   await transaction.done;
-  const [{ clearMediaHistory }, { clearCreditsVault }] = await Promise.all([
-    import("./media-storage"),
-    import("./credits/storage"),
-  ]);
   await Promise.all([clearMediaHistory(), clearCreditsVault()]);
   localStorage.removeItem("umbra-theme");
 };
