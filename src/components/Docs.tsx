@@ -198,10 +198,6 @@ const topics = [
           confirms.
         </p>
         <p className="note">
-          Production uses the committed <code>.env.production</code> file for
-          this public treasury setting; it is not a secret.
-        </p>
-        <p className="note">
           Sending USDG transfers real funds and does not create an account or
           imply refunds. The encrypted credits ledger lives only in this
           browser; clearing local data or losing the recovery file loses the
