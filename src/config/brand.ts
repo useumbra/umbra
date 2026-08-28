@@ -5,7 +5,7 @@ export const brand = {
   chain: { name: "Robinhood Chain", id: 4663 },
   domain: "useumbra.org",
   social: {
-    x: { handle: "@use_umbra", url: "https://x.com/use_umbra" },
+    x: { handle: "@useumbraa", url: "https://x.com/useumbraa" },
     github: {
       handle: "useumbra/umbra",
       url: "https://github.com/useumbra/umbra",
