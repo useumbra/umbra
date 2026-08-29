@@ -1,257 +1,611 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { brand } from "@/config/brand";
 import { chainNetworks } from "@/config/chain";
 import { Header } from "./Header";
 
-const topics = [
-  {
-    title: "Getting started",
-    content: (
-      <>
-        <p>
-          There is no account to create and nothing to install. Open{" "}
-          <Link href={brand.appPath}>{brand.products.chat}</Link>, pick a model,
-          and start a conversation.
-        </p>
-        <p>
-          Conversations live in this browser&apos;s IndexedDB storage and are
-          not stored on an Umbra server.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Smart Privacy",
-    content: (
-      <>
-        <p>
-          Smart Privacy detects identity anchors in your prompt in the browser,
-          replaces them with reversible placeholders, and keeps the mapping in a
-          vault for that conversation. Choose Smart, Full, or Off in the chat
-          controls.
-        </p>
-        <p>
-          A local receipt shows what was protected, and the browser restores
-          your context when the model response comes back. Use{" "}
-          <Link href="/leak-check">/leak-check</Link> to inspect your own prompt
-          without sending it anywhere.
-        </p>
-        <p className="note">
-          Detection and restoration happen in the browser; the current limit is
-          that protection depends on the detectors and mode you choose.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Attachments",
-    content: (
-      <>
-        <p>
-          Text, PDF, and image attachments are extracted and redacted in the
-          browser before their contents are included in a provider request.
-        </p>
-        <p className="note">
-          Attachment extraction is client-side and bounded by the limits shown
-          in the chat surface; Umbra does not provide server-side file storage.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Umbra Memory",
-    content: (
-      <>
-        <p>
-          Memory entries are things you write yourself. They are stored only in
-          this browser, injected as a system message when enabled, and redacted
-          through the same conversation vault before they are sent.
-        </p>
-        <p>
-          Toggle Memory off to stop sending entries. This is manual context, not
-          automatic learning or an automatic profile built from your
-          conversations.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Connectors (MCP)",
-    content: (
-      <>
-        <p>
-          Connectors are stored in this browser. The{" "}
-          <Link href="/connectors">Connectors</Link> surface uses the{" "}
-          <code>/api/mcp</code> proxy only to reach cross-origin endpoints; the
-          proxy is stateless, accepts HTTPS URLs only, and permits initialize,
-          tools/list, and tools/call.
-        </p>
-        <p>
-          Discovery and direct invocation remain available manually. Optional
-          experimental agentic tool use can ask the model to choose from tools
-          you have discovered.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Web search",
-    content: (
-      <>
-        <p>
-          Turn on Web search to ask OpenRouter&apos;s web plugin for grounded
-          answers. The browser sends only the redacted prompt to the search
-          provider through OpenRouter.
-        </p>
-        <p>
-          Returned URL citations are shown beneath the assistant response as
-          links. Search is optional and remains off unless you enable it.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Agentic tool use",
-    content: (
-      <>
-        <p>
-          When enabled, Umbra can ask a connector you registered in this browser
-          to run one of its discovered tools. This feature is experimental and
-          stops after three tool rounds for a turn.
-        </p>
-        <p>
-          Tool arguments are restored before they are sent to your connector.
-          Results are redacted in the browser before they return to the model.
-          Each call is shown with the arguments sent and its redacted result.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Council, models, and usage",
-    content: (
-      <>
-        <p>
-          UmbraCouncil sends one browser-redacted brief to up to three model
-          seats in parallel. Its runs stay in memory and are not saved as
-          conversations. The <Link href="/models">model catalog</Link> lists the
-          configured models and their declared capabilities.
-        </p>
-        <p>
-          The <Link href="/usage">usage dashboard</Link> stores only
-          provider-reported token counts and cost by day and model in this
-          browser. It never stores prompt or response text.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Umbra API",
-    content: (
-      <>
-        <p>
-          Umbra exposes an OpenAI-compatible API at{" "}
-          <code>{brand.apiBasePath}</code>. Authenticate with a key in the
-          <code> Authorization: Bearer $UMBRA_API_KEY</code> header. The key is
-          checked by the server against its configured API secret and can be
-          revoked from the developer page.
-        </p>
-        <p>
-          Create and manage keys at <Link href="/developers">Developers</Link>.
-          The full key is shown once and saved only in your browser. Because
-          Umbra has no accounts, possession of a key is the authorization to
-          revoke it; keep keys private.
-        </p>
-        <pre className="panel docs-code">{`curl https://{your-domain}${brand.apiBasePath}/chat/completions \\
-  -H "Authorization: Bearer $UMBRA_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model":"umbra-auto","stream":true,"messages":[{"role":"user","content":"Hello"}]}'`}</pre>
-        <p className="note">
-          This route authenticates and routes requests server-side, but
-          server-side redaction is not applied to API calls. Client applications
-          own redaction before sending prompts.
-        </p>
-        <p>
-          See the <Link href="/developers">developer guide</Link> for key
-          management and the complete model and pricing details. Self-hosters
-          can still sign tokens directly with <code>UMBRA_API_SECRET</code>.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Credits and chain",
-    content: (
-      <>
-        <p>
-          Credits are held in an encrypted, browser-only vault. You can export
-          an encrypted recovery file or import one; Umbra never receives the
-          passphrase or ledger.
-        </p>
-        <p>
-          The credits surface can read wallet balances on{" "}
-          {chainNetworks.mainnet.name} (chain ID {chainNetworks.mainnet.chainId}
-          ), including USDG at <code>{chainNetworks.mainnet.usdG}</code>. These
-          wallet reads are read-only. When{" "}
-          <code>NEXT_PUBLIC_UMBRA_TREASURY</code> is configured, you can send
-          USDG to that treasury and claim matching credits after the transfer
-          confirms.
-        </p>
-        <p className="note">
-          Sending USDG transfers real funds and does not create an account or
-          imply refunds. The encrypted credits ledger lives only in this
-          browser; clearing local data or losing the recovery file loses the
-          displayed balance. Without the treasury variable, the on-chain top-up
-          form remains unavailable.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Privacy posture",
-    content: (
-      <>
-        <p>
-          Umbra has no account requirement and does not store browser
-          conversations on a server. In browser chat, provider requests carry
-          the protected text produced by the local privacy boundary.
-        </p>
-        <p className="note">
-          The OpenAI-compatible API is a separate server endpoint: API clients
-          are responsible for redacting their own prompts before sending them.
-        </p>
-      </>
-    ),
-  },
+const toc = [
+  ["overview", "Overview"],
+  ["privacy-model", "Privacy model"],
+  ["chat-routing", "Chat and routing"],
+  ["local-storage", "Local storage and memory"],
+  ["attachments", "Attachments"],
+  ["connectors", "Connectors (MCP)"],
+  ["umbracode", "UmbraCode"],
+  ["api", "API"],
+  ["credits", "Credits and funding"],
+  ["limits", "Limits and status"],
 ] as const;
 
+const apiBaseUrl = `https://{your-domain}${brand.apiBasePath}`;
+
 export function Docs() {
+  const [activeSection, setActiveSection] = useState<string>(toc[0][0]);
+
+  useEffect(() => {
+    const sections = toc
+      .map(([id]) => document.getElementById(id))
+      .filter((section): section is HTMLElement => section !== null);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (a, b) => b.boundingClientRect.top - a.boundingClientRect.top,
+          )[0];
+        if (visible) setActiveSection(visible.target.id);
+      },
+      { rootMargin: "-8% 0px -72% 0px", threshold: [0, 0.1, 0.5] },
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div>
       <Header />
       <main className="shell docs-page">
-        <section className="hero docs-hero">
-          <div className="eyebrow">Umbra documentation</div>
+        <section className="docs-masthead">
+          <div className="eyebrow">UMBRA DOCS / V1 / SYSTEM SPECIFICATION</div>
           <h1>
-            A clear guide to
+            Private intelligence,
             <br />
-            <span style={{ color: "var(--accent)" }}>the boundary.</span>
+            <span>specified.</span>
           </h1>
-          <p>
-            Learn where Umbra keeps your data, what each surface does, and which
-            capabilities are still local or limited.
+          <p className="docs-abstract">
+            Umbra is a browser-first private AI workspace. Redaction happens on
+            your device, conversations and credits stay in the browser, models
+            are swappable, and USDG funding settles on Robinhood Chain when a
+            treasury is configured.
           </p>
-        </section>
-        {topics.map((topic) => (
-          <section className="section docs-section" key={topic.title}>
-            <div className="section-heading">
-              <h2>{topic.title}</h2>
-              <p>What it does, where it runs, and its current limits.</p>
+          <div className="actions docs-actions">
+            <Link className="button" href={brand.appPath}>
+              Launch Umbra
+            </Link>
+            <a
+              className="button secondary"
+              href={brand.social.github.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Source on GitHub
+            </a>
+            <Link className="button secondary" href="/leak-check">
+              Inspect a prompt
+            </Link>
+          </div>
+          <div className="docs-meta-grid">
+            <div>
+              <span>Maintainer</span>
+              <strong>useumbra</strong>
             </div>
-            <div className="panel docs-copy">{topic.content}</div>
-          </section>
-        ))}
+            <div>
+              <span>System class</span>
+              <strong>
+                Browser-first private AI workspace on Cloudflare Workers
+              </strong>
+            </div>
+            <div>
+              <span>Hard constraints</span>
+              <strong>
+                No account · no server-side conversation storage · no training
+                on user data
+              </strong>
+            </div>
+            <div>
+              <span>Scope</span>
+              <strong>
+                Privacy boundary, local state, routing, tools, API, and funding
+              </strong>
+            </div>
+          </div>
+        </section>
+
+        <div className="docs-layout">
+          <aside className="docs-toc" aria-label="Documentation sections">
+            <div className="docs-toc-label">Contents</div>
+            <nav>
+              {toc.map(([id, title], index) => (
+                <a
+                  href={`#${id}`}
+                  key={id}
+                  className={activeSection === id ? "is-active" : undefined}
+                >
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  {title}
+                </a>
+              ))}
+            </nav>
+          </aside>
+
+          <div className="docs-content">
+            <section className="docs-spec-section" id="overview">
+              <SectionHeading number="01" title="Overview">
+                The boundary is local; the providers are replaceable.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  Umbra is a private AI workspace for asking questions, making
+                  images and video, writing code, and connecting your own tools.
+                  It is not a model, an account system, or a server-side archive
+                  of your conversations.
+                </p>
+                <p>
+                  In browser chat, Smart Privacy detects recognizable details
+                  before the request leaves your device. A provider receives the
+                  redacted text; the browser keeps the reversible mapping and
+                  restores your context when the response returns.
+                </p>
+                <div className="docs-callout">
+                  <span className="step-number">THREAT BOUNDARY</span>
+                  <p>
+                    Umbra reduces exposure at the browser boundary. It cannot
+                    guarantee that every sensitive detail is detected, and it
+                    does not redact API clients on their behalf.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="privacy-model">
+              <SectionHeading number="02" title="Privacy model">
+                Detect locally, substitute reversibly, restore locally.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  Smart Privacy is the default. Full adds lower-confidence
+                  contextual categories, while Off leaves the prompt unchanged.
+                  The detector set covers names, email addresses, phone numbers,
+                  locations, URLs, IP addresses, EVM addresses and transaction
+                  hashes, secrets, financial identifiers, organizations, money,
+                  dates of birth, and health terms.
+                </p>
+                <div className="docs-two-column">
+                  <div>
+                    <h3>Mode matrix</h3>
+                    <div className="docs-table-wrap">
+                      <table className="docs-table">
+                        <thead>
+                          <tr>
+                            <th>Mode</th>
+                            <th>Behavior</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Smart</td>
+                            <td>Protects identity and high-signal details.</td>
+                          </tr>
+                          <tr>
+                            <td>Full</td>
+                            <td>
+                              Adds contextual and lower-confidence categories.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Off</td>
+                            <td>
+                              Sends the text without browser substitutions.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div className="docs-example">
+                    <h3>Placeholder contract</h3>
+                    <pre className="docs-code">{`Avery Chen → [PERSON_1]
+avery@example.com → [EMAIL_1]
+0x1234…7890 → [WALLET_1]
+Lisbon → [LOCATION_1]`}</pre>
+                  </div>
+                </div>
+                <p>
+                  Each replacement is recorded in a local receipt. When the
+                  response arrives, the browser restores placeholders such as
+                  <code> [PERSON_1]</code> and <code>[EMAIL_1]</code> from the
+                  conversation vault. The{" "}
+                  <Link href="/leak-check">Leak check</Link> surface lets you
+                  inspect a prompt without sending it anywhere.
+                </p>
+                <div className="docs-callout">
+                  <span className="step-number">LIMITS</span>
+                  <p>
+                    Detection is heuristic. Coverage changes with the selected
+                    mode and detector categories, and unusual phrasing or unseen
+                    formats can pass through. Review the local receipt before
+                    trusting a protected request.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="chat-routing">
+              <SectionHeading number="03" title="Chat and routing">
+                One local boundary in front of many models and controls.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  UmbraChat can use the configured model catalog directly or
+                  choose with <code>umbra-auto</code>. The router considers the
+                  prompt and available model capabilities; a selected model is
+                  shown with the response.
+                </p>
+                <p>
+                  The Tune panel exposes temperature, reasoning effort where a
+                  model supports it, and optional web search. Search results
+                  include URL citations beneath the answer. UmbraCouncil sends
+                  one browser-redacted brief to up to three seats in parallel;
+                  council runs remain in memory and are not saved as
+                  conversations.
+                </p>
+                <p>
+                  The <Link href="/models">model catalog</Link> lists the
+                  configured models, context windows, pricing, and declared
+                  capabilities. The <Link href="/usage">usage dashboard</Link>{" "}
+                  stores only provider-reported accounting by day and model.
+                </p>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="local-storage">
+              <SectionHeading number="04" title="Local storage and memory">
+                Browser state is useful, portable by export, and not synced.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  Conversations, manually written memory entries, settings,
+                  usage records, connector registrations, and API key records
+                  use IndexedDB in this browser. Memory is optional manual
+                  context, not automatic learning or a profile inferred from
+                  your conversations.
+                </p>
+                <p>
+                  The credits vault is encrypted with Web Crypto and can be
+                  exported as an encrypted recovery file. A wipe-data control
+                  clears local application state. There is no sync service:
+                  switching browsers or devices does not bring these records
+                  with you unless you explicitly export and import the relevant
+                  recovery data.
+                </p>
+                <div className="docs-callout">
+                  <span className="step-number">STORAGE POSTURE</span>
+                  <p>
+                    Clearing local data, losing a recovery file, or losing
+                    access to this browser can make local conversations, memory,
+                    keys, and displayed credits unavailable.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="attachments">
+              <SectionHeading number="05" title="Attachments">
+                Extract in the browser, redact before a provider sees text.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  Text files (<code>.txt</code>, <code>.md</code>,{" "}
+                  <code>.csv</code>, and <code>.json</code>), PDFs, and images
+                  can be attached in Chat. Text and PDF content is extracted in
+                  the browser; image data is passed only to models that declare
+                  vision support.
+                </p>
+                <p>
+                  Extracted text uses the same privacy boundary as the prompt.
+                  The combined extracted text sent for a turn is capped at
+                  120,000 characters, and the chat surface marks truncated
+                  attachments. Umbra does not provide server-side file storage.
+                </p>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="connectors">
+              <SectionHeading number="06" title="Connectors (MCP)">
+                Bring an HTTPS MCP endpoint into the browser-local workspace.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  The <Link href="/connectors">Connectors</Link> surface stores
+                  endpoint registrations in this browser and uses the{" "}
+                  <code>/api/mcp</code> proxy for cross-origin requests. The
+                  proxy accepts HTTPS URLs and supports initialize, tools/list,
+                  and tools/call operations.
+                </p>
+                <p>
+                  Discover tools and run them manually from the connector
+                  surface. Optional agentic tool use can ask the model to choose
+                  from discovered tools, with a maximum of three tool rounds in
+                  a turn. Arguments are restored before a connector call and
+                  results are redacted before returning to the model.
+                </p>
+                <div className="docs-callout">
+                  <span className="step-number">EXPERIMENTAL</span>
+                  <p>
+                    Agentic tool use is experimental and has not been tested
+                    against a third-party MCP server.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="umbracode">
+              <SectionHeading number="07" title="UmbraCode">
+                Describe a build, then inspect it inside an isolated preview.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  UmbraCode turns a product idea into project files through the
+                  configured coding model. Its preview renders those files in an
+                  isolated sandboxed iframe rather than mixing generated markup
+                  into the workspace page.
+                </p>
+                <p>
+                  The surface is designed for iterative prompts, file
+                  inspection, and a live preview. It does not promise a
+                  production deployment or replace a project&apos;s own security
+                  review.
+                </p>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="api">
+              <SectionHeading number="08" title="API">
+                An OpenAI-compatible interface for builders who own the client
+                boundary.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  The API is available at <code>{brand.apiBasePath}</code>{" "}
+                  relative to your Umbra host. Create persistent keys from{" "}
+                  <Link href="/developers">Developers</Link>; keys can be
+                  revoked there or through the revoke endpoint. The full key is
+                  returned once and stored only in the browser that created it.
+                </p>
+                <p>
+                  There are no accounts, so possession of a key is the
+                  authorization to revoke it. API requests are not browser chat:
+                  client applications must redact their own prompts before
+                  sending them.
+                </p>
+                <pre className="docs-code panel">{`curl ${apiBaseUrl}/chat/completions \\
+  -H "Authorization: Bearer $UMBRA_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"umbra-auto","stream":false,"messages":[{"role":"user","content":"Hello"}]}'`}</pre>
+                <pre className="docs-code panel">{`const response = await fetch("${apiBaseUrl}/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": \`Bearer \${process.env.UMBRA_API_KEY}\`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "umbra-auto",
+    stream: false,
+    messages: [{ role: "user", content: "Hello" }],
+  }),
+});
+const completion = await response.json();
+console.log(completion.choices[0].message.content);`}</pre>
+                <div className="docs-table-wrap">
+                  <table className="docs-table">
+                    <thead>
+                      <tr>
+                        <th>Method</th>
+                        <th>Path</th>
+                        <th>Purpose</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>POST</td>
+                        <td>
+                          <code>/chat/completions</code>
+                        </td>
+                        <td>Stream or return a routed completion.</td>
+                      </tr>
+                      <tr>
+                        <td>GET</td>
+                        <td>
+                          <code>/models</code>
+                        </td>
+                        <td>List configured models and capabilities.</td>
+                      </tr>
+                      <tr>
+                        <td>POST</td>
+                        <td>
+                          <code>/keys</code>
+                        </td>
+                        <td>Create a key from a label and expiry window.</td>
+                      </tr>
+                      <tr>
+                        <td>POST</td>
+                        <td>
+                          <code>/keys/revoke</code>
+                        </td>
+                        <td>Revoke a possessed key.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="note">
+                  Self-hosters can still sign tokens directly with{" "}
+                  <code>UMBRA_API_SECRET</code>. The API server does not store
+                  prompt or response text.
+                </p>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="credits">
+              <SectionHeading number="09" title="Credits and on-chain funding">
+                A local ledger can be funded by a verified USDG transfer.
+              </SectionHeading>
+              <div className="docs-copy">
+                <p>
+                  Credits are held in an encrypted, browser-only vault. The
+                  Credits surface reads wallet balances on{" "}
+                  {chainNetworks.mainnet.name} and, when a treasury is
+                  configured, sends USDG to that treasury. After confirmation,
+                  the browser verifies the receipt through the public RPC and
+                  grants matching local credits once per transaction hash.
+                </p>
+                <p>
+                  Sending USDG transfers real funds. It does not create an
+                  account or imply refunds. The treasury address is public build
+                  configuration from <code>NEXT_PUBLIC_UMBRA_TREASURY</code>;
+                  when it is absent, the top-up form remains unavailable.
+                </p>
+                <div className="docs-table-wrap">
+                  <table className="docs-table">
+                    <thead>
+                      <tr>
+                        <th>Chain fact</th>
+                        <th>Configured value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Network / chain ID</td>
+                        <td>
+                          {chainNetworks.mainnet.name} ·{" "}
+                          {chainNetworks.mainnet.chainId}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>RPC</td>
+                        <td>
+                          <code>{chainNetworks.mainnet.rpc}</code>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Explorer</td>
+                        <td>
+                          <code>{chainNetworks.mainnet.explorer}</code>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>USDG contract</td>
+                        <td>
+                          <code>{chainNetworks.mainnet.usdG}</code>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Treasury</td>
+                        <td>
+                          <code>
+                            {chainNetworks.mainnet.treasury ??
+                              "Not configured in this build"}
+                          </code>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="note">
+                  Clearing local data or losing the recovery file loses the
+                  displayed local balance. Umbra does not hold an account
+                  balance on your behalf.
+                </p>
+              </div>
+            </section>
+
+            <section className="docs-spec-section" id="limits">
+              <SectionHeading number="10" title="Limits and honest status">
+                The useful boundary includes knowing what is not implemented.
+              </SectionHeading>
+              <div className="docs-copy">
+                <div className="docs-table-wrap">
+                  <table className="docs-table">
+                    <thead>
+                      <tr>
+                        <th>Feature</th>
+                        <th>Status</th>
+                        <th>Current statement</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Accounts and cross-device sync</td>
+                        <td>
+                          <Status>Not implemented</Status>
+                        </td>
+                        <td>State remains local to each browser.</td>
+                      </tr>
+                      <tr>
+                        <td>Voice</td>
+                        <td>
+                          <Status>Not implemented</Status>
+                        </td>
+                        <td>
+                          No voice capture or playback surface is shipped.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Conversation sharing</td>
+                        <td>
+                          <Status>Not implemented</Status>
+                        </td>
+                        <td>Conversations have no public sharing link.</td>
+                      </tr>
+                      <tr>
+                        <td>$UMB token</td>
+                        <td>
+                          <Status>Planned</Status>
+                        </td>
+                        <td>
+                          No token utility or transfer flow is implemented.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Agentic MCP tool use</td>
+                        <td>
+                          <Status>Experimental</Status>
+                        </td>
+                        <td>
+                          Available with a three-round cap; third-party MCP
+                          coverage is untested.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p>
+                  Provider availability, model capabilities, browser storage,
+                  detector coverage, and local credentials can all affect a
+                  result. This specification describes the shipped boundary, not
+                  a guarantee that every provider or browser behaves the same
+                  way.
+                </p>
+              </div>
+            </section>
+          </div>
+        </div>
       </main>
     </div>
   );
+}
+
+function SectionHeading({
+  number,
+  title,
+  children,
+}: {
+  number: string;
+  title: string;
+  children: string;
+}) {
+  return (
+    <div className="docs-section-heading">
+      <div className="docs-section-number">{number}</div>
+      <div>
+        <h2>{title}</h2>
+        <p>{children}</p>
+      </div>
+    </div>
+  );
+}
+
+function Status({ children }: { children: string }) {
+  return <span className="docs-status">{children}</span>;
 }
