@@ -469,6 +469,7 @@ footer {
 .docs-toc nav {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 4px;
   margin-top: 17px;
 }
@@ -508,7 +509,7 @@ footer {
 }
 .docs-spec-section {
   scroll-margin-top: 84px;
-  padding: 66px 0 72px;
+  padding: 52px 0 56px;
   border-bottom: 1px solid var(--line);
 }
 .docs-spec-section:last-child {
