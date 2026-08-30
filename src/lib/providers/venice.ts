@@ -27,10 +27,11 @@ export class VeniceProvider implements Provider {
     const chosen =
       this.catalog.find((item) => item.id === model) ?? this.catalog[0];
     if (!chosen) throw new Error("Provider unavailable");
-    const reasoning =
-      chosen.capabilities.reasoning && options?.reasoningEffort
+    const reasoning = chosen.capabilities.reasoning
+      ? options?.reasoningEffort
         ? mapReasoningEffort(options.reasoningEffort)
-        : undefined;
+        : "none"
+      : undefined;
     const response = await fetch(
       "https://api.venice.ai/api/v1/chat/completions",
       {

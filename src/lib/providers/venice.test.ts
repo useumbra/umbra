@@ -110,6 +110,25 @@ describe("VeniceProvider", () => {
     }
   });
 
+  it("disables default reasoning for reasoning-capable models", async () => {
+    vi.stubEnv("VENICE_API_KEY", "test-key");
+    let requestBody: Record<string, unknown> | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+        requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return new Response(new ReadableStream<Uint8Array>());
+      }),
+    );
+
+    await new VeniceProvider(catalog).stream(
+      [{ role: "user", content: "Hello" }],
+      "venice-test",
+    );
+
+    expect(requestBody).toMatchObject({ reasoning_effort: "none" });
+  });
+
   it("omits web search and reasoning for unsupported options", async () => {
     vi.stubEnv("VENICE_API_KEY", "test-key");
     let requestBody: Record<string, unknown> | undefined;
