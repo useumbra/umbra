@@ -1,6 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "./route";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
 
 const request = (body: unknown) =>
   new NextRequest("http://localhost/api/mcp", {
@@ -13,6 +18,21 @@ describe("MCP proxy", () => {
   it("rejects a non-HTTPS URL", async () => {
     const response = await POST(
       request({ url: "http://example.com", method: "initialize", params: {} }),
+    );
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "Connector URL must use https.",
+    });
+  });
+
+  it("rejects localhost HTTP URLs in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const response = await POST(
+      request({
+        url: "http://localhost:3000/api/mcp",
+        method: "initialize",
+        params: {},
+      }),
     );
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({

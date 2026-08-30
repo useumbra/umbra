@@ -140,4 +140,29 @@ describe("Venice MCP endpoint", () => {
       },
     });
   });
+
+  it("defaults omitted tool arguments to an empty object", async () => {
+    vi.stubEnv("VENICE_API_KEY", "test-venice-key");
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ data: [] })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await POST(
+      request(
+        body("tools/call", {
+          name: "venice_models",
+        }),
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    await expect(response.json()).resolves.toEqual({
+      jsonrpc: "2.0",
+      id: 1,
+      result: {
+        content: [{ type: "text", text: "No Venice models found." }],
+      },
+    });
+  });
 });

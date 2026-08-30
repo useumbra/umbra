@@ -42,6 +42,7 @@ export const validateMcpRequest = (
     return { ok: false, error: "The connector URL is invalid." };
   }
   const isLocalDevelopment =
+    process.env.NODE_ENV !== "production" &&
     parsedUrl.protocol === "http:" &&
     ["localhost", "127.0.0.1", "[::1]"].includes(parsedUrl.hostname);
   if (parsedUrl.protocol !== "https:" && !isLocalDevelopment)

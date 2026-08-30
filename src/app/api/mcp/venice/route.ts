@@ -318,7 +318,10 @@ export async function POST(request: Request) {
   if (!isRecord(body.params))
     return jsonRpcError(id, -32602, "Invalid tools/call arguments");
   try {
-    const result = await callTool(body.params.name, body.params.arguments);
+    const toolArguments = Object.hasOwn(body.params, "arguments")
+      ? body.params.arguments
+      : {};
+    const result = await callTool(body.params.name, toolArguments);
     return jsonRpc(id, result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
