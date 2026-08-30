@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   getConnectors,
   saveConnectors,
@@ -29,6 +30,7 @@ export function ConnectorsClient() {
   const [draft, setDraft] = useState<ConnectorDraft>(emptyDraft);
   const [editingId, setEditingId] = useState<string>();
   const [message, setMessage] = useState("");
+  const [veniceApiKey, setVeniceApiKey] = useState("");
   const [busyId, setBusyId] = useState<string>();
   const [argumentsByTool, setArgumentsByTool] = useState<
     Record<string, string>
@@ -40,6 +42,28 @@ export function ConnectorsClient() {
   const persist = async (next: Connector[]) => {
     const saved = await saveConnectors(next);
     setConnectors(saved);
+  };
+  const addVeniceConnector = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const key = veniceApiKey.trim();
+    if (!key) {
+      setMessage("Enter an Umbra API key to add Venice tools.");
+      return;
+    }
+    await persist([
+      {
+        id: id(),
+        name: "Venice tools",
+        url: `${window.location.origin}/api/mcp/venice`,
+        headerName: "Authorization",
+        headerValue: `Bearer ${key}`,
+      },
+      ...connectors,
+    ]);
+    setVeniceApiKey("");
+    setMessage(
+      "Venice tools added. The connector and key are stored only in this browser.",
+    );
   };
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -172,6 +196,34 @@ export function ConnectorsClient() {
           not run tools automatically, and connector credentials never leave
           this browser except for the request you start.
         </p>
+        <section className={`panel ${styles.card} ${styles.builtinCard}`}>
+          <h2>Venice tools</h2>
+          <p>
+            Add Umbra&apos;s built-in Venice endpoint with your{" "}
+            <Link href="/developers">Umbra API key</Link>. Tool arguments leave
+            this browser after privacy processing, and these calls spend Umbra
+            Venice credit. Exactly three tools are available: web answers,
+            character search, and model listing.
+          </p>
+          <form
+            className={styles.builtinForm}
+            onSubmit={(event) => void addVeniceConnector(event)}
+          >
+            <label>
+              Umbra API key
+              <input
+                type="password"
+                value={veniceApiKey}
+                onChange={(event) => setVeniceApiKey(event.target.value)}
+                placeholder="umb_…"
+                autoComplete="off"
+              />
+            </label>
+            <button className="button" type="submit">
+              Add Venice tools
+            </button>
+          </form>
+        </section>
         <section className={`panel ${styles.card}`}>
           <h2>{editingId ? "Edit connector" : "Add a connector"}</h2>
           <form

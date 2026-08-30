@@ -41,7 +41,10 @@ export const validateMcpRequest = (
   } catch {
     return { ok: false, error: "The connector URL is invalid." };
   }
-  if (parsedUrl.protocol !== "https:")
+  const isLocalDevelopment =
+    parsedUrl.protocol === "http:" &&
+    ["localhost", "127.0.0.1", "[::1]"].includes(parsedUrl.hostname);
+  if (parsedUrl.protocol !== "https:" && !isLocalDevelopment)
     return { ok: false, error: "Connector URL must use https." };
   if (!isJsonRpcMethod(input.method))
     return { ok: false, error: "MCP method is not allowed." };

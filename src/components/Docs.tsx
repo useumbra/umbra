@@ -328,6 +328,20 @@ Lisbon → [LOCATION_1]`}</pre>
                     against a third-party MCP server.
                   </p>
                 </div>
+                <div className="docs-callout">
+                  <strong>Built-in Venice tools</strong>
+                  <p>
+                    Umbra also exposes its own Venice-backed MCP endpoint at{" "}
+                    <code>/api/mcp/venice</code>. Send{" "}
+                    <code>Authorization: Bearer &lt;Umbra API key&gt;</code>{" "}
+                    using a key from <Link href="/developers">Developers</Link>.
+                    It provides exactly three tools:{" "}
+                    <code>venice_web_answer</code>,{" "}
+                    <code>venice_characters_search</code>, and{" "}
+                    <code>venice_models</code>. Arguments leave the browser
+                    after redaction, and calls spend Umbra&apos;s Venice credit.
+                  </p>
+                </div>
               </div>
             </section>
 
