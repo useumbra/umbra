@@ -4,6 +4,7 @@ export type ModelConfig = {
   description: string;
   contextWindow: number;
   upstreamSlug: string;
+  provider?: "openrouter" | "venice";
   creditPricing: { inPer1M: number; outPer1M: number };
   capabilities: {
     streaming: boolean;

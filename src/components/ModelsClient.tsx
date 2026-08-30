@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { models, type ModelConfig } from "@/config/models";
+import type { ModelConfig } from "@/config/models";
 import styles from "./ModelsClient.module.css";
 
 type Capability = keyof ModelConfig["capabilities"];
@@ -14,13 +14,13 @@ const capabilityLabels: { key: Capability; label: string }[] = [
   { key: "reasoning", label: "Reasoning" },
 ];
 
-export function ModelsClient() {
+export function ModelsClient({ models: catalog }: { models: ModelConfig[] }) {
   const [query, setQuery] = useState("");
   const [capability, setCapability] = useState<Capability>();
   const [sort, setSort] = useState<"context" | "price">("context");
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return [...models]
+    return [...catalog]
       .filter(
         (model) =>
           !normalized ||
@@ -34,7 +34,7 @@ export function ModelsClient() {
           ? b.contextWindow - a.contextWindow
           : a.creditPricing.inPer1M - b.creditPricing.inPer1M,
       );
-  }, [capability, query, sort]);
+  }, [capability, catalog, query, sort]);
 
   return (
     <main className={styles.page}>
@@ -106,6 +106,12 @@ export function ModelsClient() {
                   <div>
                     <dt>Upstream</dt>
                     <dd>{model.upstreamSlug}</dd>
+                  </div>
+                  <div>
+                    <dt>Served by</dt>
+                    <dd>
+                      {model.provider === "venice" ? "Venice" : "OpenRouter"}
+                    </dd>
                   </div>
                 </dl>
                 <div className={styles.badges}>

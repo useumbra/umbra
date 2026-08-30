@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server";
-import { OpenRouterProvider } from "@/lib/providers/openrouter";
-import { StubProvider } from "@/lib/providers/stub";
+import { availableModels, providerFor } from "@/lib/providers/select";
 import type { ReasoningEffort } from "@/lib/providers/types";
-import { models } from "@/config/models";
 import { route } from "@/lib/router";
 import type { ProviderContent } from "@/lib/providers/types";
 
@@ -20,6 +18,7 @@ export async function POST(request: NextRequest) {
   };
   // Never log message content at this boundary; prompts are user-private data.
   const requestedModel = body.model ?? "umbra-auto";
+  const configuredModels = availableModels();
   const lastPrompt = [...body.messages]
     .reverse()
     .find((message) => message.role === "user")?.content;
@@ -32,14 +31,12 @@ export async function POST(request: NextRequest) {
           .join(" ") ?? "");
   const decision =
     requestedModel === "umbra-auto"
-      ? route(routingPrompt, models)
+      ? route(routingPrompt, configuredModels)
       : {
           model: requestedModel,
           reason: "selected manually",
         };
-  const provider = process.env.OPENROUTER_API_KEY
-    ? new OpenRouterProvider()
-    : new StubProvider();
+  const provider = providerFor(decision.model);
   const maxTokens =
     typeof body.maxTokens === "number" &&
     Number.isFinite(body.maxTokens) &&

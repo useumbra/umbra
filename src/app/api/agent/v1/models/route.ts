@@ -1,5 +1,5 @@
-import { models } from "@/config/models";
 import { requireApiAuth } from "@/lib/api-auth";
+import { availableModels } from "@/lib/providers/select";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   if (unauthorized) return unauthorized;
   return Response.json({
     object: "list",
-    data: models.map((model) => ({
+    data: availableModels().map((model) => ({
       id: model.id,
       object: "model",
       created: 1_741_000_000,
@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       credit_pricing: model.creditPricing,
       capabilities: model.capabilities,
       context_window: model.contextWindow,
+      provider: model.provider ?? "openrouter",
     })),
   });
 }

@@ -1,7 +1,5 @@
-import { models } from "@/config/models";
+import { availableModels, providerFor } from "@/lib/providers/select";
 import { route } from "@/lib/router";
-import { OpenRouterProvider } from "@/lib/providers/openrouter";
-import { StubProvider } from "@/lib/providers/stub";
 import { requireApiAuth } from "@/lib/api-auth";
 import type { ProviderMessage } from "@/lib/providers/types";
 
@@ -92,6 +90,7 @@ export async function POST(request: Request) {
     );
   const messages = normalizeMessages(body.messages);
   const requestedModel = body.model ?? "umbra-auto";
+  const configuredModels = availableModels();
   const lastContent =
     [...messages].reverse().find((message) => message.role === "user")
       ?.content ?? "";
@@ -104,16 +103,14 @@ export async function POST(request: Request) {
           .join(" ");
   const decision =
     requestedModel === "umbra-auto"
-      ? route(lastPrompt, models)
+      ? route(lastPrompt, configuredModels)
       : { model: requestedModel, reason: "selected manually" };
-  if (!models.some((model) => model.id === decision.model))
+  if (!configuredModels.some((model) => model.id === decision.model))
     return Response.json(
       { error: { message: "Unknown model", type: "invalid_request_error" } },
       { status: 400 },
     );
-  const provider = process.env.OPENROUTER_API_KEY
-    ? new OpenRouterProvider()
-    : new StubProvider();
+  const provider = providerFor(decision.model);
   const upstream = await provider.stream(messages, decision.model);
   const completionId = `umbra-${crypto.randomUUID()}`;
   if (!body.stream) {
