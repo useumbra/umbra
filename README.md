@@ -6,7 +6,7 @@
 
 Sensitive details are stripped in the browser before any provider sees the prompt.
 
-Umbra is not a model. It is a privacy boundary and router in front of OpenRouter and fal.ai providers. Conversations, memory, the credits vault, and connectors live in the browser rather than on an Umbra application server.
+Umbra is not a model. It is a privacy boundary and router in front of OpenRouter, Venice, and fal.ai providers. Conversations, memory, the credits vault, and connectors live in the browser rather than on an Umbra application server.
 
 ## Demo
 
@@ -38,6 +38,12 @@ The original prompt stays in the browser; the provider sees `[PERSON_1]`, `[EMAI
 
 ![UmbraCode generating a tip calculator with a sandboxed live preview](docs/assets/code.webp)
 
+### Venice models
+
+Venice runs as a second provider next to OpenRouter, with pricing, context window, and the upstream slug shown per model.
+
+![Model catalog card for Venice Private labelled Served by Venice](docs/assets/venice.webp)
+
 ### Leak check
 
 ![Leak check scoring a prompt at 60 out of 100 and showing the protected preview](docs/assets/leak.webp)
@@ -48,6 +54,8 @@ The original prompt stays in the browser; the provider sees `[PERSON_1]`, `[EMAI
 
 - Browser-side Smart Privacy engine with 17 detectors, Smart/Full/Off modes, and reversible placeholders.
 - Streaming chat through OpenRouter with `umbra-auto` model routing.
+- Venice as a second provider with three models, streaming, Venice web search with citations, and a per-model provider label in the catalog.
+- A Venice-backed MCP endpoint at `/api/mcp/venice` exposing `venice_web_answer`, `venice_characters_search`, and `venice_models` to the agentic tool loop.
 - Optional web-search grounding with source citations.
 - Browser-local Umbra Memory.
 - File, PDF, and image attachments extracted and redacted in the browser.
@@ -81,7 +89,7 @@ src/
 │   │   ├── chat/           # Streaming chat route
 │   │   ├── code/           # Code generation route
 │   │   ├── image/          # Image generation route
-│   │   ├── mcp/            # Browser connector proxy
+│   │   ├── mcp/            # Browser connector proxy and Venice tool server
 │   │   └── video/          # Video queue submit and status routes
 │   ├── app/page.tsx        # UmbraChat workspace
 │   ├── code/page.tsx       # UmbraCode workspace
@@ -133,7 +141,7 @@ src/
 │   └── models.ts           # Available model routes and pricing
 └── lib/                    # Privacy, storage, providers, routing, and utilities
     ├── privacy/            # Detectors, vaults, redaction, and restoration
-    ├── providers/          # OpenRouter, fal.ai, and deterministic adapters
+    ├── providers/          # OpenRouter, Venice, fal.ai, and deterministic adapters
     ├── credits/            # Encrypted vault storage and pricing
     ├── attachments.ts      # Browser-side text, PDF, and image extraction
     ├── chat-features.ts    # Citation and tool-call parsing
@@ -162,17 +170,18 @@ Open [http://localhost:3000](http://localhost:3000). The `predev` script copies 
 
 Copy `.env.example` to `.env.local` for local development:
 
-| Variable                     | Purpose                                                                                                                            |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENROUTER_API_KEY`         | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys). |
-| `FAL_KEY`                    | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).     |
-| `UMBRA_API_SECRET`           | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                            |
-| `NEXT_PUBLIC_UMBRA_TREASURY` | Enables USDG top-ups to this Robinhood Chain treasury address. Must be a valid EVM address.                                        |
+| Variable                     | Purpose                                                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`         | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).     |
+| `VENICE_API_KEY`             | Enables the Venice models and the Venice-backed MCP endpoint. Get a key from [venice.ai/settings/api](https://venice.ai/settings/api). |
+| `FAL_KEY`                    | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).         |
+| `UMBRA_API_SECRET`           | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                                |
+| `NEXT_PUBLIC_UMBRA_TREASURY` | Enables USDG top-ups to this Robinhood Chain treasury address. Must be a valid EVM address.                                            |
 
 The production treasury is configured in the committed `.env.production`.
 This `NEXT_PUBLIC_` value is public build configuration, not a secret.
 
-Without `OPENROUTER_API_KEY`, chat uses a deterministic local stub. Without `FAL_KEY`, image and video use deterministic local stubs.
+Without `VENICE_API_KEY`, Venice models are hidden from the catalog and never fall back to another provider. Without `OPENROUTER_API_KEY`, chat uses a deterministic local stub. Without `FAL_KEY`, image and video use deterministic local stubs.
 
 Generated API keys are shown once and stored only in the browser that created
 them. With no accounts, possession of a key is the authorization to revoke it.

@@ -4,6 +4,19 @@ All notable changes to Umbra are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Venice as a second chat provider with three catalog models, streaming, Venice web search with citations, and a provider label in the model catalog.
+- A Venice-backed MCP endpoint at `/api/mcp/venice` with `venice_web_answer`, `venice_characters_search`, and `venice_models`, plus a built-in connector card for it.
+
+### Changed
+
+- Venice models are hidden without `VENICE_API_KEY` and never fall back to another provider.
+- Reasoning-capable Venice models default to `reasoning_effort: none` so answers are not returned empty.
+- Connector URLs must use HTTPS in production; localhost HTTP is accepted only outside production.
+
 ## [0.1.0] - 2026-08-27
 
 ### Added
