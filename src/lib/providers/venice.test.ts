@@ -81,6 +81,35 @@ describe("VeniceProvider", () => {
     });
   });
 
+  it("maps Umbra reasoning levels to Venice-supported values", async () => {
+    vi.stubEnv("VENICE_API_KEY", "test-key");
+    let requestBody: Record<string, unknown> | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+        requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return new Response(new ReadableStream<Uint8Array>());
+      }),
+    );
+    const provider = new VeniceProvider(catalog);
+
+    for (const [effort, expected] of [
+      ["minimal", "low"],
+      ["low", "low"],
+      ["medium", "medium"],
+      ["high", "high"],
+      ["xhigh", "high"],
+      ["max", "high"],
+    ] as const) {
+      await provider.stream(
+        [{ role: "user", content: "Hello" }],
+        "venice-test",
+        { reasoningEffort: effort },
+      );
+      expect(requestBody).toMatchObject({ reasoning_effort: expected });
+    }
+  });
+
   it("omits web search and reasoning for unsupported options", async () => {
     vi.stubEnv("VENICE_API_KEY", "test-key");
     let requestBody: Record<string, unknown> | undefined;

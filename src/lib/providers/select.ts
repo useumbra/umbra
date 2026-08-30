@@ -35,12 +35,10 @@ export const providerFor = (
   environment: ProviderEnvironment = process.env,
 ): Provider => {
   const model = catalog.find((item) => item.id === modelId);
-  if (
-    model &&
-    providerName(model) === "venice" &&
-    hasKey(environment.VENICE_API_KEY)
-  )
-    return new VeniceProvider(catalog);
+  if (model && providerName(model) === "venice")
+    return hasKey(environment.VENICE_API_KEY)
+      ? new VeniceProvider(catalog)
+      : new StubProvider();
   if (hasKey(environment.OPENROUTER_API_KEY)) return new OpenRouterProvider();
   return new StubProvider();
 };

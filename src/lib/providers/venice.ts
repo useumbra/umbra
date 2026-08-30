@@ -1,5 +1,19 @@
 import { models, type ModelConfig } from "../../config/models";
-import type { Provider, ProviderMessage, ProviderOptions } from "./types";
+import type {
+  Provider,
+  ProviderMessage,
+  ProviderOptions,
+  ReasoningEffort,
+} from "./types";
+
+const mapReasoningEffort = (
+  effort: ReasoningEffort,
+): "low" | "medium" | "high" =>
+  effort === "minimal"
+    ? "low"
+    : effort === "xhigh" || effort === "max"
+      ? "high"
+      : effort;
 
 export class VeniceProvider implements Provider {
   constructor(private readonly catalog: ModelConfig[] = models) {}
@@ -15,7 +29,7 @@ export class VeniceProvider implements Provider {
     if (!chosen) throw new Error("Provider unavailable");
     const reasoning =
       chosen.capabilities.reasoning && options?.reasoningEffort
-        ? options.reasoningEffort
+        ? mapReasoningEffort(options.reasoningEffort)
         : undefined;
     const response = await fetch(
       "https://api.venice.ai/api/v1/chat/completions",

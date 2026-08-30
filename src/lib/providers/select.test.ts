@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { ModelConfig } from "../../config/models";
-import { OpenRouterProvider } from "./openrouter";
 import { availableModels, providerFor } from "./select";
 import { StubProvider } from "./stub";
 import { VeniceProvider } from "./venice";
@@ -86,7 +85,7 @@ describe("provider selection and availability", () => {
       providerFor("venice-private", catalog, {
         OPENROUTER_API_KEY: "openrouter-key",
       }),
-    ).toBeInstanceOf(OpenRouterProvider);
+    ).toBeInstanceOf(StubProvider);
     expect(
       providerFor("openrouter-general", catalog, {
         VENICE_API_KEY: "venice-key",
