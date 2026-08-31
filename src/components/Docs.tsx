@@ -563,6 +563,17 @@ console.log(completion.choices[0].message.content);`}</pre>
                         <td>Conversations have no public sharing link.</td>
                       </tr>
                       <tr>
+                        <td>$UMBRA tier check</td>
+                        <td>
+                          <Status>Live</Status>
+                        </td>
+                        <td>
+                          Reads a wallet&apos;s $UMBRA balance through the
+                          public Robinhood Chain RPC; tiers are informational
+                          and grant nothing yet.
+                        </td>
+                      </tr>
+                      <tr>
                         <td>$UMBRA token</td>
                         <td>
                           <Status>Planned</Status>

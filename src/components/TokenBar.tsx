@@ -94,8 +94,9 @@ export function TokenBar() {
           ))}
         </ul>
         <p className={styles.note}>
-          Your wallet proves the balance. Umbra never stores an account, an
-          email, or who you are.
+          Check which tier your wallet is in at /credits — the balance is read
+          on-chain, nothing is stored. Your wallet proves the balance; Umbra
+          never stores an account, an email, or who you are.
         </p>
       </div>
     </section>

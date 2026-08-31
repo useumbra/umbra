@@ -83,6 +83,11 @@ const roadmap = [
         description:
           "Experimental: grounded answers with the same browser privacy boundary.",
       },
+      {
+        title: "$UMBRA tier check",
+        description:
+          "Read a wallet's $UMBRA balance on Robinhood Chain and see its tier; no perk is enforced yet.",
+      },
     ],
   },
   {
@@ -113,11 +118,6 @@ const roadmap = [
       {
         title: "Optional accounts",
         description: "Opt-in sync, never required.",
-      },
-      {
-        title: "$UMBRA holder tier",
-        description:
-          "Read a wallet's $UMBRA balance on Robinhood Chain and unlock a tier without an account.",
       },
       {
         title: "$UMBRA credits",

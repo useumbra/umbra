@@ -1,0 +1,165 @@
+.card {
+  max-width: none;
+  padding: 28px;
+}
+
+.note {
+  max-width: 680px;
+  margin: 14px 0 22px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.button {
+  min-height: 34px;
+  padding: 7px 11px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.error {
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.result,
+.ladder {
+  padding-top: 22px;
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px;
+}
+
+.summary > div {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.summary code {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font:
+    12px var(--font-geist-mono),
+    monospace;
+}
+
+.tierBadge,
+.planned {
+  width: fit-content;
+  padding: 4px 7px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.perks {
+  margin-top: 22px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heading h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.perks ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 14px 0 0;
+  color: var(--muted);
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.perks li {
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.next {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tier {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.tier span {
+  font-size: 11px;
+}
+
+.reached {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+@media (max-width: 700px) {
+  .card {
+    padding: 22px;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

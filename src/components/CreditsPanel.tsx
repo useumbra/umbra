@@ -28,6 +28,7 @@ import {
   parseAmount,
 } from "@/lib/funding";
 import { chainNetworks } from "@/config/chain";
+import { HolderTier } from "./HolderTier";
 import styles from "./CreditsPanel.module.css";
 
 const emptyVault: CreditVaultData = { ledger: [] };
@@ -335,6 +336,7 @@ export function CreditsPanel() {
           )}
           {walletMessage && <p role="status">{walletMessage}</p>}
         </section>
+        <HolderTier />
         <section className={`panel ${styles.card}`}>
           <h2>{vault ? `${balance.toFixed(2)} credits` : "Vault locked"}</h2>
           <p className="note">

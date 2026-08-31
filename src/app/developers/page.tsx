@@ -2,6 +2,7 @@ import { brand } from "@/config/brand";
 import { models } from "@/config/models";
 import { ApiKeysPanel } from "@/components/ApiKeysPanel";
 import { Header } from "@/components/Header";
+import { HolderTier } from "@/components/HolderTier";
 import styles from "@/components/Developers.module.css";
 
 const baseUrl = `https://{your-domain}${brand.apiBasePath}`;
@@ -33,6 +34,14 @@ export default function DevelopersPage() {
             administration. Local development without that secret uses an
             ephemeral process secret.
           </p>
+        </section>
+        <section className="section" style={{ paddingTop: 35 }}>
+          <h2>Holder tier.</h2>
+          <p>
+            Umbra reads your $UMBRA balance on Robinhood Chain to show which
+            tier you would be in. Holder quotas on the API are not enforced yet.
+          </p>
+          <HolderTier />
         </section>
         <section className="section" style={{ paddingTop: 35 }}>
           <h2>Chat completions.</h2>
