@@ -45,7 +45,13 @@ const roadmap = [
       },
       {
         title: "Umbra Memory",
-        description: "Context you write yourself, kept in this browser.",
+        description:
+          "Context you write yourself, with browser-local suggestions from your wording.",
+      },
+      {
+        title: "Voice",
+        description:
+          "Browser dictation and local read-aloud controls for chat replies.",
       },
       {
         title: "Connectors (MCP)",
@@ -97,16 +103,6 @@ const roadmap = [
         title: "Holder limits",
         description:
           "A signed holder proof raises Council seats and the max-token ceiling in chat and UmbraCode.",
-      },
-    ],
-  },
-  {
-    status: "In progress / next",
-    blurb: "Being worked on now.",
-    items: [
-      {
-        title: "Smarter memory",
-        description: "Suggest entries instead of relying on manual notes.",
       },
     ],
   },

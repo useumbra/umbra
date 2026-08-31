@@ -12,6 +12,7 @@ export type MemoryState = {
 };
 
 const memoryKey = "memory";
+const dismissedMemoryKey = "memory-dismissed";
 const defaultMemory: MemoryState = { enabled: true, entries: [] };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -95,3 +96,23 @@ export const memoryPrompt = (entries: MemoryEntry[]) =>
         ...entries.map((entry) => `- ${entry.text}`),
       ].join("\n")
     : "";
+
+export const getDismissedMemories = async (): Promise<string[]> => {
+  const value = await getSetting<unknown>(dismissedMemoryKey, []);
+  return Array.isArray(value)
+    ? value
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim().toLowerCase())
+        .slice(-50)
+    : [];
+};
+
+export const dismissMemory = async (text: string): Promise<string[]> => {
+  const dismissed = await getDismissedMemories();
+  const value = text.trim().toLowerCase();
+  const next = [...dismissed.filter((item) => item !== value), value].slice(
+    -50,
+  );
+  await saveSetting(dismissedMemoryKey, next);
+  return next;
+};

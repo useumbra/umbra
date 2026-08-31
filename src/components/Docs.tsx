@@ -260,7 +260,8 @@ Lisbon → [LOCATION_1]`}</pre>
                   usage records, connector registrations, and API key records
                   use IndexedDB in this browser. Memory is optional manual
                   context, not automatic learning or a profile inferred from
-                  your conversations.
+                  your conversations. Umbra can suggest memories from your own
+                  wording, entirely in this browser.
                 </p>
                 <p>
                   The credits vault is encrypted with Web Crypto and can be
@@ -553,12 +554,24 @@ console.log(completion.choices[0].message.content);`}</pre>
                         <td>State remains local to each browser.</td>
                       </tr>
                       <tr>
-                        <td>Voice</td>
+                        <td>Memory suggestions</td>
                         <td>
-                          <Status>Not implemented</Status>
+                          <Status>Live</Status>
                         </td>
                         <td>
-                          No voice capture or playback surface is shipped.
+                          Umbra proposes memories from your own wording; nothing
+                          is suggested or stored outside your browser.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Voice</td>
+                        <td>
+                          <Status>Live</Status>
+                        </td>
+                        <td>
+                          Dictation uses browser speech recognition; in Chrome,
+                          audio may be sent to Google, never to Umbra. Playback
+                          is local.
                         </td>
                       </tr>
                       <tr>

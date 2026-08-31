@@ -7,6 +7,8 @@ import { Vault, redact, restore } from "@/lib/privacy";
 import {
   addMemory,
   clearMemory,
+  dismissMemory,
+  getDismissedMemories,
   getMemory,
   removeMemory,
   setMemoryEnabled,
@@ -14,6 +16,15 @@ import {
   memoryPrompt,
   type MemoryState,
 } from "@/lib/memory";
+import { suggestMemories } from "@/lib/memory-suggest";
+import {
+  createDictation,
+  dictationSupported,
+  speak,
+  speechSupported,
+  stopSpeaking,
+  type SpeechRecognitionLike,
+} from "@/lib/speech";
 import {
   MAX_ATTACHMENT_TEXT,
   combineReceipts,
@@ -202,6 +213,11 @@ export function ChatClient() {
   const [memoryDraft, setMemoryDraft] = useState("");
   const [editingMemoryId, setEditingMemoryId] = useState<string>();
   const [memoryMessage, setMemoryMessage] = useState("");
+  const [dismissedMemories, setDismissedMemories] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [voiceAutoSpeak, setVoiceAutoSpeak] = useState(false);
+  const [dictating, setDictating] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string>();
   const [webSearch, setWebSearch] = useState(false);
   const [toolUse, setToolUse] = useState(false);
   const [connectors, setConnectors] = useState<Connector[]>([]);
@@ -209,6 +225,8 @@ export function ChatClient() {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | undefined>(undefined);
+  const dictationRef = useRef<SpeechRecognitionLike | undefined>(undefined);
+  const dictationBaseRef = useRef("");
   const messagesRef = useRef<HTMLDivElement>(null);
   const activeMessages = useMemo(() => active?.messages ?? [], [active]);
   useEffect(() => {
@@ -221,6 +239,8 @@ export function ChatClient() {
       getSetting("webSearch", false),
       getSetting("toolUse", false),
       getMemory(),
+      getDismissedMemories(),
+      getSetting("voice-autospeak", false),
       getConnectors(),
     ]).then(
       ([
@@ -232,6 +252,8 @@ export function ChatClient() {
         savedWebSearch,
         savedToolUse,
         savedMemory,
+        savedDismissed,
+        savedVoiceAutoSpeak,
         savedConnectors,
       ]) => {
         setConversations(items);
@@ -242,11 +264,20 @@ export function ChatClient() {
         setWebSearch(savedWebSearch);
         setToolUse(savedToolUse);
         setMemory(savedMemory);
+        setDismissedMemories(savedDismissed);
+        setVoiceAutoSpeak(savedVoiceAutoSpeak);
         setConnectors(savedConnectors);
         if (items[0]) setActive(items[0]);
       },
     );
   }, []);
+  useEffect(
+    () => () => {
+      dictationRef.current?.abort();
+      stopSpeaking();
+    },
+    [],
+  );
   useEffect(() => {
     const element = messagesRef.current;
     if (!element) return;
@@ -274,6 +305,7 @@ export function ChatClient() {
     setActive(next);
     setConversations((items) => [next, ...items]);
     setSidebarOpen(false);
+    setSuggestions([]);
     void saveConversation(next);
   }, []);
   useEffect(() => {
@@ -309,6 +341,7 @@ export function ChatClient() {
       );
       return;
     }
+    const rawDraft = draft;
     const conversation = active ?? {
       id: id(),
       title: (
@@ -395,6 +428,11 @@ export function ChatClient() {
         : "";
     setActive(next);
     setDraft("");
+    setSuggestions(
+      memory.enabled
+        ? suggestMemories(rawDraft, memory.entries, dismissedMemories)
+        : [],
+    );
     setBusy(true);
     abortRef.current = new AbortController();
     const assistant: ChatMessage = { id: id(), role: "assistant", content: "" };
@@ -542,6 +580,10 @@ export function ChatClient() {
         ...items.filter((item) => item.id !== finished.id),
       ]);
       await saveConversation(finished);
+      if (voiceAutoSpeak && assistant.content) {
+        speak(assistant.content);
+        setSpeakingId(assistant.id);
+      }
       setAttachments([]);
     } catch (error) {
       assistant.error =
@@ -563,6 +605,34 @@ export function ChatClient() {
       setBusy(false);
       abortRef.current = undefined;
     }
+  };
+  const toggleDictation = () => {
+    if (!dictationSupported()) return;
+    if (dictationRef.current) {
+      dictationRef.current.stop();
+      return;
+    }
+    dictationBaseRef.current = draft.trim() ? `${draft.trim()} ` : "";
+    const recognition = createDictation(
+      (text, final) => {
+        const next = `${dictationBaseRef.current}${text}`.trimStart();
+        setDraft(next);
+        if (final) dictationBaseRef.current = `${next} `;
+      },
+      () => {
+        dictationRef.current = undefined;
+        setDictating(false);
+      },
+    );
+    if (!recognition) return;
+    dictationRef.current = recognition;
+    setDictating(true);
+    recognition.start();
+  };
+  const dismissSuggestion = async (text: string) => {
+    const next = await dismissMemory(text);
+    setDismissedMemories(next);
+    setSuggestions((items) => items.filter((item) => item !== text));
   };
   const stop = () => abortRef.current?.abort();
   const jumpToLatest = () => {
@@ -685,6 +755,7 @@ export function ChatClient() {
     );
     setConversations((items) => [...copies, ...items]);
     setActive(copies[0]);
+    setSuggestions([]);
     setTransferMessage(
       `Imported ${copies.length} conversation${copies.length === 1 ? "" : "s"}.`,
     );
@@ -897,6 +968,7 @@ export function ChatClient() {
                       }
                       onClick={() => {
                         setActive(conversation);
+                        setSuggestions([]);
                         setSidebarOpen(false);
                       }}
                       aria-current={
@@ -1030,6 +1102,18 @@ export function ChatClient() {
                     />
                     Web search
                   </label>
+                  <label className={styles.featureToggle}>
+                    <input
+                      type="checkbox"
+                      checked={voiceAutoSpeak}
+                      onChange={(event) => {
+                        const enabled = event.target.checked;
+                        setVoiceAutoSpeak(enabled);
+                        void saveSetting("voice-autospeak", enabled);
+                      }}
+                    />
+                    Read replies aloud
+                  </label>
                   <p className="note">
                     Provider list price:{" "}
                     <span>
@@ -1101,17 +1185,39 @@ export function ChatClient() {
                   </p>
                 )}
                 {message.role === "assistant" && message.content && (
-                  <button
-                    className={styles.copyButton}
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(message.content);
-                      setCopiedId(message.id);
-                      window.setTimeout(() => setCopiedId(undefined), 1600);
-                    }}
-                  >
-                    {copiedId === message.id ? "Copied" : "Copy"}
-                  </button>
+                  <div className={styles.messageActions}>
+                    <button
+                      className={styles.copyButton}
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(message.content);
+                        setCopiedId(message.id);
+                        window.setTimeout(() => setCopiedId(undefined), 1600);
+                      }}
+                    >
+                      {copiedId === message.id ? "Copied" : "Copy"}
+                    </button>
+                    {speechSupported() && (
+                      <button
+                        className={styles.copyButton}
+                        type="button"
+                        aria-label={`${speakingId === message.id ? "Stop reading" : "Read aloud"} assistant message`}
+                        onClick={() => {
+                          if (speakingId === message.id) {
+                            stopSpeaking();
+                            setSpeakingId(undefined);
+                          } else {
+                            speak(message.content);
+                            setSpeakingId(message.id);
+                          }
+                        }}
+                      >
+                        {speakingId === message.id
+                          ? "Stop reading"
+                          : "Read aloud"}
+                      </button>
+                    )}
+                  </div>
                 )}
                 {message.role === "assistant" && message.route && (
                   <div className="note">
@@ -1197,6 +1303,38 @@ export function ChatClient() {
           )}
         </div>
         <div className="composer-wrap">
+          {suggestions.length > 0 && (
+            <div className={styles.suggestions} role="status">
+              <span className="note">
+                Suggested from your message, in this browser only.
+              </span>
+              {suggestions.map((suggestion) => (
+                <div className={styles.suggestion} key={suggestion}>
+                  <span>{suggestion}</span>
+                  <button
+                    type="button"
+                    aria-label={`Remember suggested memory: ${suggestion}`}
+                    onClick={() => {
+                      void remember(suggestion).then(() =>
+                        setSuggestions((items) =>
+                          items.filter((item) => item !== suggestion),
+                        ),
+                      );
+                    }}
+                  >
+                    Remember
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Dismiss suggested memory: ${suggestion}`}
+                    onClick={() => void dismissSuggestion(suggestion)}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="composer">
             {attachments.length > 0 && (
               <div className={styles.attachments}>
@@ -1248,6 +1386,18 @@ export function ChatClient() {
                 }}
               />
             </label>
+            {dictationSupported() && (
+              <button
+                className={styles.attachButton}
+                type="button"
+                aria-pressed={dictating}
+                aria-label={dictating ? "Stop dictation" : "Dictate"}
+                title="Dictation uses your browser's own speech recognition — in Chrome that sends audio to Google, never to Umbra. Playback is local."
+                onClick={toggleDictation}
+              >
+                {dictating ? "Listening…" : "Dictate"}
+              </button>
+            )}
             {busy ? (
               <button className="send" onClick={stop} type="button">
                 Stop
