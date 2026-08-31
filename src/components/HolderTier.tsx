@@ -165,9 +165,9 @@ export function HolderTier() {
       <div className="eyebrow">Holder tier</div>
       <h2>$UMBRA tier</h2>
       <p className={styles.note}>
-        Your balance is read live from Robinhood Chain through the public RPC.
-        Nothing is sent to Umbra, no signature is requested, and no perk is
-        active yet.
+        Reading your balance needs no signature and sends nothing to Umbra.
+        Verifying ownership signs a message — no gas, no transaction — so your
+        API keys get your tier&apos;s quota. No other perk is enforced yet.
       </p>
       <button
         className={styles.button}
