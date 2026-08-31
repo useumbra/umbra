@@ -11,11 +11,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Venice as a second chat provider with three catalog models, streaming, Venice web search with citations, and a provider label in the model catalog.
 - A Venice-backed MCP endpoint at `/api/mcp/venice` with `venice_web_answer`, `venice_characters_search`, and `venice_models`, plus a built-in connector card for it.
 - The live $UMBRA contract address on Robinhood Chain is now shown on the site.
-- Planned $UMBRA holder benefits are now surfaced on the site and roadmap.
+- $UMBRA holder benefits are now surfaced on the site and roadmap.
 - A live $UMBRA tier check now reads wallet balances without activating perks.
 - Signed $UMBRA holder proofs now set enforced per-tier API quotas.
 - Verified holder tiers now raise Council, chat, and UmbraCode capacity limits.
 - Verified holder proofs now add holder-rate credits to eligible USDG top-ups.
+- Verified holders can now use early access and weighted advisory votes.
 - Browser-local memory suggestions and voice dictation/read-aloud controls are now available.
 
 ### Changed

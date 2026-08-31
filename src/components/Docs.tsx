@@ -633,6 +633,19 @@ console.log(completion.choices[0].message.content);`}</pre>
                         </td>
                       </tr>
                       <tr>
+                        <td>Holder votes</td>
+                        <td>
+                          <Status>Live</Status>
+                        </td>
+                        <td>
+                          <code>GET /api/holder/vote</code> returns public poll
+                          tallies. <code>POST</code> requires a signed holder
+                          proof; votes weigh 1× for Holder, 3× for Circle, and
+                          10× for Council. Only a hash of the wallet address is
+                          stored.
+                        </td>
+                      </tr>
+                      <tr>
                         <td>$UMBRA token</td>
                         <td>
                           <Status>Live</Status>

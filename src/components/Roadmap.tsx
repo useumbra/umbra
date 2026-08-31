@@ -114,6 +114,16 @@ const roadmap = [
         description:
           "Verified holders receive 5%, 10%, or 20% extra local credits on USDG top-ups sent from the verified wallet.",
       },
+      {
+        title: "Early access",
+        description:
+          "New surfaces open to verified holders first; the first is the roadmap vote.",
+      },
+      {
+        title: "Holder votes",
+        description:
+          "Verified holders cast one advisory vote per poll, weighted by tier.",
+      },
     ],
   },
   {
@@ -134,11 +144,6 @@ const roadmap = [
       {
         title: "Optional accounts",
         description: "Opt-in sync, never required.",
-      },
-      {
-        title: "Holder votes",
-        description:
-          "Vote on new providers and on which redaction detectors ship next.",
       },
     ],
   },

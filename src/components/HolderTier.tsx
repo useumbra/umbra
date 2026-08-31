@@ -193,7 +193,7 @@ export function HolderTier() {
         Verifying ownership signs a message — no gas, no transaction — so your
         API keys get your tier&apos;s quota and your tier&apos;s enforced
         benefits. Holder-rate credits are enforced on on-chain top-ups; early
-        access and votes remain planned.
+        access and votes are live at /vote.
       </p>
       <button
         className={styles.button}
@@ -217,7 +217,7 @@ export function HolderTier() {
         Verification is signed proof, not a transaction. It enforces your
         tier&apos;s API quota, Council seats, chat and UmbraCode token ceilings,
         priority routing, and holder-rate credits on on-chain top-ups. Early
-        access and votes remain planned.
+        access and votes are available at /vote.
       </p>
       {error && (
         <p className={styles.error} role="alert">

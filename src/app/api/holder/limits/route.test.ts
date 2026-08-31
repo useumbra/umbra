@@ -21,6 +21,7 @@ describe("holder limits route", () => {
       tier: "circle",
       address: address.toLowerCase(),
       creditBonusPercent: 10,
+      features: ["vote"],
     });
   });
 
@@ -32,6 +33,7 @@ describe("holder limits route", () => {
     expect(body).toMatchObject({
       tier: "base",
       creditBonusPercent: 0,
+      features: [],
     });
     expect(body).not.toHaveProperty("address");
   });

@@ -1,6 +1,7 @@
 import { limitsForTier } from "@/lib/holder-limits";
 import { readHolderProof } from "@/lib/holder-proof";
 import { holderBonusPercent } from "@/lib/credits/holder-rate";
+import { unlockedFeatures } from "@/lib/holder-features";
 
 export const runtime = "nodejs";
 
@@ -45,5 +46,6 @@ export async function POST(request: Request) {
     limits: limitsForTier(tier),
     ...(claims ? { address: claims.addr } : {}),
     creditBonusPercent: holderBonusPercent(tier),
+    features: unlockedFeatures(tier).map((feature) => feature.id),
   });
 }

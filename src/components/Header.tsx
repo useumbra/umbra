@@ -30,6 +30,7 @@ export function Header() {
     ["/connectors", "Connectors"],
     ["/credits", "Credits"],
     ["/developers", "Get an API key"],
+    ["/vote", "Vote"],
     ["/roadmap", "Roadmap"],
     [brand.appPath, "Launch Umbra"],
   ] as const;
@@ -39,6 +40,7 @@ export function Header() {
     destinations[2],
     destinations[3],
     destinations[4],
+    destinations[8],
   ] as const;
   return (
     <header className="site-header">

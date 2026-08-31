@@ -31,14 +31,15 @@ const benefits = [
   },
   {
     title: "Early access",
-    description: "New surfaces open to holders before general release.",
-    status: "planned",
+    description:
+      "New surfaces open to verified holders first; the first is the roadmap vote.",
+    status: "live",
   },
   {
     title: "A vote on the boundary",
     description:
-      "Holders vote on which providers get added and which detectors ship next.",
-    status: "planned",
+      "Advisory votes are weighted by tier (Holder 1×, Circle 3×, Council 10×), with one wallet vote per poll.",
+    status: "live",
   },
 ] as const;
 
@@ -60,8 +61,8 @@ export function TokenBar() {
       <div className="eyebrow">Token</div>
       <h2>{brand.token.ticker}</h2>
       <p className={styles.copy}>
-        The contract is live on Robinhood Chain. Some holder utility is enforced
-        today; the rest is on the roadmap.
+        The contract is live on Robinhood Chain, and all six listed holder
+        benefits are live today.
       </p>
       <div className={styles.addressRow}>
         <code>{brand.token.address}</code>
