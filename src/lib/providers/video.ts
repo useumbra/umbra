@@ -1,4 +1,5 @@
 import { deterministicSvg, mediaUrl, type ImageRequest } from "./media";
+import { UpstreamError } from "./upstream";
 
 const model = "fal-ai/wan/v2.7/text-to-video";
 
@@ -33,23 +34,29 @@ type VideoSubmission = {
 
 export class FalVideoProvider implements VideoProvider {
   async submit(request: ImageRequest): Promise<VideoSubmission> {
-    const submit = await fetch(`https://queue.fal.run/${model}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt: request.prompt,
-        aspect_ratio:
-          request.aspectRatio === "portrait"
-            ? "9:16"
-            : request.aspectRatio === "square"
-              ? "1:1"
-              : "16:9",
-      }),
-    });
-    if (!submit.ok) throw new Error("Video provider unavailable");
+    let submit: Response;
+    try {
+      submit = await fetch(`https://queue.fal.run/${model}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Key ${process.env.FAL_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: request.prompt,
+          aspect_ratio:
+            request.aspectRatio === "portrait"
+              ? "9:16"
+              : request.aspectRatio === "square"
+                ? "1:1"
+                : "16:9",
+        }),
+      });
+    } catch {
+      throw new UpstreamError(0, "Video provider unavailable");
+    }
+    if (!submit.ok)
+      throw new UpstreamError(submit.status, "Video provider unavailable");
     const queued = (await submit.json()) as {
       request_id?: string;
       status_url?: string;
@@ -61,19 +68,37 @@ export class FalVideoProvider implements VideoProvider {
   }
 
   async status(requestId: string): Promise<VideoStatus> {
-    const statusResponse = await fetch(
-      `https://queue.fal.run/fal-ai/wan/requests/${encodeURIComponent(requestId)}/status`,
-      { headers: { Authorization: `Key ${process.env.FAL_KEY}` } },
-    );
-    if (!statusResponse.ok) throw new Error("Video status unavailable");
+    let statusResponse: Response;
+    try {
+      statusResponse = await fetch(
+        `https://queue.fal.run/fal-ai/wan/requests/${encodeURIComponent(requestId)}/status`,
+        { headers: { Authorization: `Key ${process.env.FAL_KEY}` } },
+      );
+    } catch {
+      throw new UpstreamError(0, "Video status unavailable");
+    }
+    if (!statusResponse.ok)
+      throw new UpstreamError(
+        statusResponse.status,
+        "Video status unavailable",
+      );
     const status = (await statusResponse.json()) as { status?: string };
     const state = mapFalVideoStatus(status.status);
     if (state !== "done") return { state };
-    const resultResponse = await fetch(
-      `https://queue.fal.run/fal-ai/wan/requests/${encodeURIComponent(requestId)}`,
-      { headers: { Authorization: `Key ${process.env.FAL_KEY}` } },
-    );
-    if (!resultResponse.ok) throw new Error("Video result unavailable");
+    let resultResponse: Response;
+    try {
+      resultResponse = await fetch(
+        `https://queue.fal.run/fal-ai/wan/requests/${encodeURIComponent(requestId)}`,
+        { headers: { Authorization: `Key ${process.env.FAL_KEY}` } },
+      );
+    } catch {
+      throw new UpstreamError(0, "Video result unavailable");
+    }
+    if (!resultResponse.ok)
+      throw new UpstreamError(
+        resultResponse.status,
+        "Video result unavailable",
+      );
     const url = mediaUrl(await resultResponse.json(), "video");
     if (!url) throw new Error("Video provider returned no video");
     return { state, url };

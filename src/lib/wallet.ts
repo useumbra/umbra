@@ -1,5 +1,6 @@
 import { chainNetworks } from "../config/chain";
 import { encodeErc20Transfer } from "./funding";
+import { UpstreamError } from "./providers/upstream";
 
 export type Eip1193Provider = {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
@@ -64,43 +65,60 @@ export const encodeBalanceOf = (address: string) => {
   return `0x70a08231${address.slice(2).toLowerCase().padStart(64, "0")}`;
 };
 
-const rpcCall = async (method: string, params: unknown[]) => {
-  const response = await fetch(chainNetworks.mainnet.rpc, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
+type RpcResponse<T> = {
+  result?: T;
+  error?: { code?: unknown };
+};
+
+const rpcRequest = async <T>(
+  method: string,
+  params: unknown[],
+): Promise<RpcResponse<T>> => {
+  let response: Response;
+  try {
+    response = await fetch(chainNetworks.mainnet.rpc, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    });
+  } catch {
+    throw new UpstreamError(0, "Robinhood Chain RPC is unavailable.");
+  }
   if (!response.ok)
-    throw new WalletError("RPC_ERROR", "Robinhood Chain RPC is unavailable.");
-  const result = (await response.json()) as {
-    result?: string;
-    error?: unknown;
-  };
-  if (!result.result || result.error)
-    throw new WalletError(
-      "RPC_ERROR",
-      "Robinhood Chain RPC returned an error.",
+    throw new UpstreamError(
+      response.status,
+      "Robinhood Chain RPC is unavailable.",
     );
+  try {
+    return (await response.json()) as RpcResponse<T>;
+  } catch {
+    throw new UpstreamError(
+      502,
+      "Robinhood Chain RPC returned an invalid response.",
+    );
+  }
+};
+
+const rpcError = (error: { code?: unknown } | undefined) => {
+  const code = error?.code;
+  return typeof code === "number" && Number.isFinite(code)
+    ? `rpc error ${code}`
+    : "Robinhood Chain RPC returned an error.";
+};
+
+const rpcCall = async (method: string, params: unknown[]) => {
+  const result = await rpcRequest<string>(method, params);
+  if (result.error) throw new UpstreamError(502, rpcError(result.error));
+  if (!result.result)
+    throw new UpstreamError(502, "Robinhood Chain RPC returned an error.");
   return result.result;
 };
 
 const rpcCallValue = async <T>(method: string, params: unknown[]) => {
-  const response = await fetch(chainNetworks.mainnet.rpc, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  if (!response.ok)
-    throw new WalletError("RPC_ERROR", "Robinhood Chain RPC is unavailable.");
-  const result = (await response.json()) as {
-    result?: T | null;
-    error?: unknown;
-  };
-  if (result.error || !("result" in result))
-    throw new WalletError(
-      "RPC_ERROR",
-      "Robinhood Chain RPC returned an error.",
-    );
+  const result = await rpcRequest<T | null>(method, params);
+  if (result.error) throw new UpstreamError(502, rpcError(result.error));
+  if (!("result" in result))
+    throw new UpstreamError(502, "Robinhood Chain RPC returned an error.");
   return result.result as T | null;
 };
 

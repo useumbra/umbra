@@ -1,5 +1,9 @@
 import { NextRequest } from "next/server";
-import { FalVideoProvider, StubVideoProvider } from "@/lib/providers/video";
+import {
+  FalVideoProvider,
+  StubVideoProvider,
+} from "../../../lib/providers/video";
+import { UpstreamError } from "../../../lib/providers/upstream";
 export const runtime = "nodejs";
 const stubProvider = new StubVideoProvider();
 
@@ -11,9 +15,12 @@ export async function GET(request: NextRequest) {
       : stubProvider;
     try {
       return Response.json(await provider.status(requestId));
-    } catch {
+    } catch (error) {
       return Response.json(
-        { error: "Video generation unavailable" },
+        {
+          error: "Video generation unavailable",
+          ...(error instanceof UpstreamError ? { upstream: error.status } : {}),
+        },
         { status: 502 },
       );
     }
@@ -40,9 +47,12 @@ export async function POST(request: NextRequest) {
       stub: !process.env.FAL_KEY,
       ...(submitted.url ? { url: submitted.url } : {}),
     });
-  } catch {
+  } catch (error) {
     return Response.json(
-      { error: "Video generation unavailable" },
+      {
+        error: "Video generation unavailable",
+        ...(error instanceof UpstreamError ? { upstream: error.status } : {}),
+      },
       { status: 502 },
     );
   }

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   chainIdHex,
   connectAndReadBalances,
@@ -7,6 +7,11 @@ import {
   hexToBigInt,
   type Eip1193Provider,
 } from "./wallet";
+import { UpstreamError } from "./providers/upstream";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("wallet helpers", () => {
   it("converts hexadecimal quantities and chain IDs", () => {
@@ -72,6 +77,44 @@ describe("wallet helpers", () => {
       "wallet_switchEthereumChain",
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    vi.unstubAllGlobals();
+  });
+
+  it("surfaces HTTP status from the public RPC", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("unavailable", { status: 503 })),
+    );
+
+    await expect(
+      import("./wallet").then(({ readTokenBalance }) =>
+        readTokenBalance(`0x${"1".repeat(40)}`, `0x${"2".repeat(40)}`),
+      ),
+    ).rejects.toMatchObject({
+      status: 503,
+    });
+  });
+
+  it("surfaces JSON-RPC error codes without upstream details", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              error: { code: -32000, message: "private upstream detail" },
+            }),
+            { status: 200 },
+          ),
+      ),
+    );
+
+    await expect(
+      import("./wallet").then(({ readTokenBalance }) =>
+        readTokenBalance(`0x${"1".repeat(40)}`, `0x${"2".repeat(40)}`),
+      ),
+    ).rejects.toMatchObject({
+      status: 502,
+      message: "rpc error -32000",
+    });
   });
 });

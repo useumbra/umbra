@@ -1,4 +1,4 @@
-import { brand } from "@/config/brand";
+import { brand } from "../../../../config/brand";
 import {
   challengeMessage,
   createHolderProof,
@@ -6,9 +6,14 @@ import {
   readHolderProof,
   recoverSigner,
   verifyChallenge,
-} from "@/lib/holder-proof";
-import { tierForBalance } from "@/lib/holder";
-import { formatUnits, getTokenDecimals, readTokenBalance } from "@/lib/wallet";
+} from "../../../../lib/holder-proof";
+import { tierForBalance } from "../../../../lib/holder";
+import {
+  formatUnits,
+  getTokenDecimals,
+  readTokenBalance,
+} from "../../../../lib/wallet";
+import { UpstreamError } from "../../../../lib/providers/upstream";
 
 export const runtime = "nodejs";
 
@@ -64,13 +69,14 @@ export async function POST(request: Request) {
       getTokenDecimals(brand.token.address),
       readTokenBalance(brand.token.address, normalizedAddress),
     ]);
-  } catch {
+  } catch (error) {
     return Response.json(
       {
         error: {
           message: "Robinhood Chain RPC is unavailable",
           type: "api_error",
         },
+        ...(error instanceof UpstreamError ? { upstream: error.status } : {}),
       },
       { status: 502 },
     );
