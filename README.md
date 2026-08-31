@@ -68,6 +68,7 @@ Venice runs as a second provider next to OpenRouter, with pricing, context windo
 - Browser-local MCP connectors with manual tool runs and an experimental agentic tool loop capped at three rounds.
 - Read-only Robinhood Chain wallet reads for ETH and USDG.
 - The live $UMBRA contract address on Robinhood Chain is shown on the site.
+- Signed $UMBRA holder proof can set an API key tier and its enforced daily quota.
 - Conversation search, export, and import.
 - `/leak-check` diagnostics.
 - `/docs` and `/roadmap`.

@@ -13,6 +13,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - The live $UMBRA contract address on Robinhood Chain is now shown on the site.
 - Planned $UMBRA holder benefits are now surfaced on the site and roadmap.
 - A live $UMBRA tier check now reads wallet balances without activating perks.
+- Signed $UMBRA holder proofs now set enforced per-tier API quotas.
 
 ### Changed
 

@@ -12,6 +12,7 @@ export type ApiClaims = {
   jti?: string;
   sub: string;
   label?: string;
+  tier?: string;
   iat: number;
   exp: number;
 };
@@ -33,11 +34,26 @@ type ApiKeyStore = {
 const encode = (value: string) => Buffer.from(value).toString("base64url");
 const tokenBody = (token: string) =>
   token.startsWith("umb_") ? token.slice(4) : token;
+const holderTierIds = new Set(["base", "holder", "circle", "council"]);
+
+export const signPayload = (payload: string) =>
+  createHmac("sha256", secret).update(payload).digest("base64url");
+
+export const verifySignedPayload = (payload: string, signature: string) => {
+  const expected = signPayload(payload);
+  const receivedBytes = Buffer.from(signature);
+  const expectedBytes = Buffer.from(expected);
+  return (
+    receivedBytes.length === expectedBytes.length &&
+    timingSafeEqual(receivedBytes, expectedBytes)
+  );
+};
 
 export const createApiTokenDetails = (
   subject = "developer",
   lifetimeSeconds = 86_400,
   label = subject,
+  tier?: string,
 ) => {
   const now = Math.floor(Date.now() / 1000);
   const claims: ApiClaims = {
@@ -46,11 +62,10 @@ export const createApiTokenDetails = (
     label,
     iat: now,
     exp: now + lifetimeSeconds,
+    ...(tier ? { tier } : {}),
   };
   const payload = encode(JSON.stringify(claims));
-  const signature = createHmac("sha256", secret)
-    .update(payload)
-    .digest("base64url");
+  const signature = signPayload(payload);
   return { token: `umb_${payload}.${signature}`, claims };
 };
 
@@ -87,16 +102,7 @@ export const getApiTokenClaims = (
 ): ApiClaims | undefined => {
   const [payload, signature] = tokenBody(token).split(".");
   if (!payload || !signature) return undefined;
-  const expected = createHmac("sha256", secret)
-    .update(payload)
-    .digest("base64url");
-  const receivedBytes = Buffer.from(signature);
-  const expectedBytes = Buffer.from(expected);
-  if (
-    receivedBytes.length !== expectedBytes.length ||
-    !timingSafeEqual(receivedBytes, expectedBytes)
-  )
-    return undefined;
+  if (!verifySignedPayload(payload, signature)) return undefined;
   try {
     const claims = JSON.parse(
       Buffer.from(payload, "base64url").toString("utf8"),
@@ -106,7 +112,9 @@ export const getApiTokenClaims = (
       typeof claims.iat !== "number" ||
       typeof claims.exp !== "number" ||
       (claims.jti !== undefined && typeof claims.jti !== "string") ||
-      (claims.label !== undefined && typeof claims.label !== "string")
+      (claims.label !== undefined && typeof claims.label !== "string") ||
+      (claims.tier !== undefined &&
+        (typeof claims.tier !== "string" || !holderTierIds.has(claims.tier)))
     )
       return undefined;
     if (!allowExpired && claims.exp <= Math.floor(Date.now() / 1000))
@@ -119,6 +127,22 @@ export const getApiTokenClaims = (
 
 export const isValidApiToken = (token: string) =>
   getApiTokenClaims(token) !== undefined;
+
+export const dailyQuotaForTier = (tier?: string) => {
+  switch (tier) {
+    case "holder":
+      return 1_000;
+    case "circle":
+      return 5_000;
+    case "council":
+      return 20_000;
+    default:
+      return 200;
+  }
+};
+
+export const usageKey = (jti: string, date = new Date()) =>
+  `usage:${jti}:${date.toISOString().slice(0, 10)}`;
 
 let warnedMissingStore = false;
 
@@ -167,10 +191,32 @@ export const requireApiAuth = async (request: Request) => {
       { error: { message: "Invalid API key", type: "authentication_error" } },
       { status: 401 },
     );
-  if (claims.jti && (await isApiTokenRevoked(claims.jti)))
+  const store = claims.jti ? await getApiKeyStore() : undefined;
+  if (store && claims.jti && (await store.get(`revoked:${claims.jti}`)))
     return Response.json(
       { error: { message: "Invalid API key", type: "authentication_error" } },
       { status: 401 },
     );
+  if (store && claims.jti) {
+    // KV counters are not atomic, so this quota is an approximation.
+    const current = Number.parseInt(
+      (await store.get(usageKey(claims.jti))) ?? "0",
+      10,
+    );
+    const count = Number.isNaN(current) ? 0 : current;
+    if (count >= dailyQuotaForTier(claims.tier))
+      return Response.json(
+        {
+          error: {
+            message: "Daily quota exceeded for this key tier",
+            type: "rate_limit_exceeded",
+          },
+        },
+        { status: 429 },
+      );
+    await store.put(usageKey(claims.jti), String(count + 1), {
+      expirationTtl: 172_800,
+    });
+  }
   return undefined;
 };

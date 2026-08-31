@@ -88,6 +88,11 @@ const roadmap = [
         description:
           "Read a wallet's $UMBRA balance on Robinhood Chain and see its tier; no perk is enforced yet.",
       },
+      {
+        title: "Holder API quota",
+        description:
+          "A signed wallet proof sets your key's tier and its enforced daily request quota.",
+      },
     ],
   },
   {
@@ -128,11 +133,6 @@ const roadmap = [
         title: "Holder limits and routing",
         description:
           "Higher UmbraCode and Council limits, plus priority routing on premium models.",
-      },
-      {
-        title: "Holder API quota",
-        description:
-          "A quota on the OpenAI-compatible endpoint tied to a verified balance.",
       },
       {
         title: "Holder votes",

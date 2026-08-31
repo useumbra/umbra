@@ -16,6 +16,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0",
     "framer-motion": "^13.1.1",
     "idb": "^8.0.3",
     "next": "15.5.7",

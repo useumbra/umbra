@@ -1,4 +1,9 @@
-import { createApiTokenDetails, validateApiKeyOptions } from "@/lib/api-auth";
+import {
+  createApiTokenDetails,
+  dailyQuotaForTier,
+  validateApiKeyOptions,
+} from "@/lib/api-auth";
+import { readHolderProof } from "@/lib/holder-proof";
 
 export const runtime = "nodejs";
 
@@ -20,10 +25,19 @@ export async function POST(request: Request) {
   }
   const options = validateApiKeyOptions(isRecord(body) ? body : {});
   if (typeof options === "string") return invalid(options);
+  const proof =
+    isRecord(body) && body.proof !== undefined ? body.proof : undefined;
+  if (proof !== undefined && typeof proof !== "string")
+    return invalid("holder proof is invalid or expired");
+  const holderProof = proof !== undefined ? readHolderProof(proof) : undefined;
+  if (proof !== undefined && !holderProof)
+    return invalid("holder proof is invalid or expired");
+  const tier = holderProof?.tier;
   const { token, claims } = createApiTokenDetails(
     "developer",
     options.days * 86_400,
     options.label,
+    tier,
   );
   return Response.json({
     key: token,
@@ -31,5 +45,7 @@ export async function POST(request: Request) {
     label: claims.label,
     createdAt: new Date(claims.iat * 1000).toISOString(),
     expiresAt: new Date(claims.exp * 1000).toISOString(),
+    tier: tier ?? "base",
+    dailyQuota: dailyQuotaForTier(tier),
   });
 }

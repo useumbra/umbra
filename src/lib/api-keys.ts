@@ -7,6 +7,8 @@ export type ApiKeyRecord = {
   createdAt: string;
   expiresAt: string;
   revoked: boolean;
+  tier?: string;
+  dailyQuota?: number;
 };
 
 export const getApiKeys = async () =>

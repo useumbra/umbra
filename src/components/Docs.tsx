@@ -384,6 +384,12 @@ Lisbon → [LOCATION_1]`}</pre>
                   client applications must redact their own prompts before
                   sending them.
                 </p>
+                <p>
+                  A signed holder proof can attach a verified $UMBRA tier to a
+                  new key. Each key then has an enforced daily quota: 200 for
+                  Base, 1,000 for Holder, 5,000 for Circle, and 20,000 for
+                  Council.
+                </p>
                 <pre className="docs-code panel">{`curl ${apiBaseUrl}/chat/completions \\
   -H "Authorization: Bearer $UMBRA_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -569,8 +575,20 @@ console.log(completion.choices[0].message.content);`}</pre>
                         </td>
                         <td>
                           Reads a wallet&apos;s $UMBRA balance through the
-                          public Robinhood Chain RPC; tiers are informational
-                          and grant nothing yet.
+                          public Robinhood Chain RPC and can verify ownership
+                          with a signed wallet message; other holder perks grant
+                          nothing yet.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Holder API quota</td>
+                        <td>
+                          <Status>Live</Status>
+                        </td>
+                        <td>
+                          Signed wallet proof sets a key&apos;s tier; daily
+                          request quota per key is 200 (base), 1,000 (Holder),
+                          5,000 (Circle), 20,000 (Council).
                         </td>
                       </tr>
                       <tr>

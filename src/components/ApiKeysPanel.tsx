@@ -9,6 +9,7 @@ import {
   saveApiKey,
   type ApiKeyRecord,
 } from "@/lib/api-keys";
+import { loadHolderProof } from "@/lib/holder-storage";
 import styles from "./ApiKeysPanel.module.css";
 
 type KeyResponse = {
@@ -17,6 +18,8 @@ type KeyResponse = {
   label: string;
   createdAt: string;
   expiresAt: string;
+  tier?: string;
+  dailyQuota?: number;
 };
 
 const isKeyResponse = (value: unknown): value is KeyResponse =>
@@ -31,7 +34,9 @@ const isKeyResponse = (value: unknown): value is KeyResponse =>
   "createdAt" in value &&
   typeof value.createdAt === "string" &&
   "expiresAt" in value &&
-  typeof value.expiresAt === "string";
+  typeof value.expiresAt === "string" &&
+  (!("tier" in value) || typeof value.tier === "string") &&
+  (!("dailyQuota" in value) || typeof value.dailyQuota === "number");
 
 const responseError = async (response: Response) => {
   const body: unknown = await response.json().catch(() => undefined);
@@ -79,18 +84,25 @@ export function ApiKeysPanel() {
     setCreating(true);
     setError(undefined);
     try {
+      const holderProof = loadHolderProof();
       const response = await fetch("/api/agent/v1/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(label ? { label } : {}),
           days: Number(days),
+          ...(holderProof ? { proof: holderProof.proof } : {}),
         }),
       });
       if (!response.ok) throw new Error(await responseError(response));
       const body: unknown = await response.json();
       if (!isKeyResponse(body)) throw new Error("Invalid key response");
-      const record: ApiKeyRecord = { ...body, revoked: false };
+      const record: ApiKeyRecord = {
+        ...body,
+        tier: body.tier ?? "base",
+        dailyQuota: body.dailyQuota ?? 200,
+        revoked: false,
+      };
       await saveApiKey(record);
       setRecords((current) => [record, ...current]);
       setLabel("");
@@ -212,6 +224,8 @@ export function ApiKeysPanel() {
                     {record.revoked
                       ? "Revoked"
                       : `Expires ${dateLabel(record.expiresAt)}`}
+                    {!record.revoked &&
+                      ` · ${record.tier ?? "base"} tier · ${record.dailyQuota ?? 200}/day`}
                   </div>
                 </div>
                 <div className={styles.actions}>
