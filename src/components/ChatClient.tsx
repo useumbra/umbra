@@ -216,6 +216,10 @@ export function ChatClient() {
   const [dismissedMemories, setDismissedMemories] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [voiceAutoSpeak, setVoiceAutoSpeak] = useState(false);
+  const [voiceSupport, setVoiceSupport] = useState({
+    dictation: false,
+    playback: false,
+  });
   const [dictating, setDictating] = useState(false);
   const [speakingId, setSpeakingId] = useState<string>();
   const [webSearch, setWebSearch] = useState(false);
@@ -230,6 +234,10 @@ export function ChatClient() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const activeMessages = useMemo(() => active?.messages ?? [], [active]);
   useEffect(() => {
+    setVoiceSupport({
+      dictation: dictationSupported(),
+      playback: speechSupported(),
+    });
     void Promise.all([
       getConversations(),
       getSetting("mode", "smart" as const),
@@ -607,7 +615,7 @@ export function ChatClient() {
     }
   };
   const toggleDictation = () => {
-    if (!dictationSupported()) return;
+    if (!voiceSupport.dictation) return;
     if (dictationRef.current) {
       dictationRef.current.stop();
       return;
@@ -1197,7 +1205,7 @@ export function ChatClient() {
                     >
                       {copiedId === message.id ? "Copied" : "Copy"}
                     </button>
-                    {speechSupported() && (
+                    {voiceSupport.playback && (
                       <button
                         className={styles.copyButton}
                         type="button"
@@ -1388,7 +1396,7 @@ export function ChatClient() {
                 }}
               />
             </label>
-            {dictationSupported() && (
+            {voiceSupport.dictation && (
               <button
                 className={styles.attachButton}
                 type="button"

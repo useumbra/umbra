@@ -70,40 +70,61 @@ type RpcResponse<T> = {
   error?: { code?: unknown };
 };
 
-const rpcRequest = async <T>(
-  method: string,
-  params: unknown[],
-): Promise<RpcResponse<T>> => {
-  let response: Response;
-  try {
-    response = await fetch(chainNetworks.mainnet.rpc, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-    });
-  } catch {
-    throw new UpstreamError(0, "Robinhood Chain RPC is unavailable.");
-  }
-  if (!response.ok)
-    throw new UpstreamError(
-      response.status,
-      "Robinhood Chain RPC is unavailable.",
-    );
-  try {
-    return (await response.json()) as RpcResponse<T>;
-  } catch {
-    throw new UpstreamError(
-      502,
-      "Robinhood Chain RPC returned an invalid response.",
-    );
-  }
-};
+const retryableRpcStatuses = new Set([0, 429, 500, 502, 503]);
 
 const rpcError = (error: { code?: unknown } | undefined) => {
   const code = error?.code;
   return typeof code === "number" && Number.isFinite(code)
     ? `rpc error ${code}`
     : "Robinhood Chain RPC returned an error.";
+};
+
+const retryDelay = (baseMs: number) => baseMs * (0.75 + Math.random() * 0.5);
+
+const rpcRequest = async <T>(
+  method: string,
+  params: unknown[],
+): Promise<RpcResponse<T>> => {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      let response: Response;
+      try {
+        response = await fetch(chainNetworks.mainnet.rpc, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        });
+      } catch {
+        throw new UpstreamError(0, "Robinhood Chain RPC is unavailable.");
+      }
+      if (!response.ok)
+        throw new UpstreamError(
+          response.status,
+          "Robinhood Chain RPC is unavailable.",
+        );
+      let result: RpcResponse<T>;
+      try {
+        result = (await response.json()) as RpcResponse<T>;
+      } catch {
+        throw new UpstreamError(
+          502,
+          "Robinhood Chain RPC returned an invalid response.",
+        );
+      }
+      return result;
+    } catch (error) {
+      if (
+        !(error instanceof UpstreamError) ||
+        !retryableRpcStatuses.has(error.status) ||
+        attempt === 2
+      )
+        throw error;
+      await new Promise<void>((resolve) =>
+        setTimeout(resolve, retryDelay(attempt === 0 ? 400 : 1200)),
+      );
+    }
+  }
+  throw new UpstreamError(502, "Robinhood Chain RPC returned an error.");
 };
 
 const rpcCall = async (method: string, params: unknown[]) => {

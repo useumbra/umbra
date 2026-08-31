@@ -5,12 +5,15 @@ import {
   encodeBalanceOf,
   formatUnits,
   hexToBigInt,
+  readTokenBalance,
   type Eip1193Provider,
 } from "./wallet";
 import { UpstreamError } from "./providers/upstream";
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe("wallet helpers", () => {
@@ -117,5 +120,65 @@ describe("wallet helpers", () => {
       status: 502,
       message: "rpc error -32000",
     });
+  });
+
+  it("retries a rate-limited RPC request and succeeds", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    let calls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        calls += 1;
+        return calls === 1
+          ? new Response("busy", { status: 429 })
+          : new Response(JSON.stringify({ result: "0x7" }), { status: 200 });
+      }),
+    );
+
+    const pending = readTokenBalance(
+      `0x${"1".repeat(40)}`,
+      `0x${"2".repeat(40)}`,
+    );
+    const result = expect(pending).resolves.toBe(BigInt(7));
+    await vi.runAllTimersAsync();
+
+    await result;
+    expect(calls).toBe(2);
+  });
+
+  it("does not retry a non-retryable RPC status", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("bad request", { status: 400 })),
+    );
+
+    await expect(
+      readTokenBalance(`0x${"1".repeat(40)}`, `0x${"2".repeat(40)}`),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws the final retryable RPC error after three attempts", async () => {
+    vi.useFakeTimers();
+    const statuses = [429, 503, 500];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        const status = statuses.shift() ?? 500;
+        return new Response("unavailable", { status });
+      }),
+    );
+
+    const pending = readTokenBalance(
+      `0x${"1".repeat(40)}`,
+      `0x${"2".repeat(40)}`,
+    );
+    const result = expect(pending).rejects.toMatchObject({ status: 500 });
+    await vi.runAllTimersAsync();
+
+    await result;
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 });

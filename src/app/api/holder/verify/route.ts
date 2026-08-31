@@ -8,8 +8,10 @@ import {
   verifyChallenge,
 } from "@/lib/holder-proof";
 import { tierForBalance } from "@/lib/holder";
-import { formatUnits, getTokenDecimals, readTokenBalance } from "@/lib/wallet";
+import { formatUnits, readTokenBalance } from "@/lib/wallet";
 import { UpstreamError } from "@/lib/providers/upstream";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createHash } from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -24,6 +26,52 @@ const authenticationError = (message: string) =>
     { error: { message, type: "authentication_error" } },
     { status: 401 },
   );
+
+type BalanceStore = {
+  get: (key: string) => Promise<string | null>;
+  put: (
+    key: string,
+    value: string,
+    options: { expirationTtl: number },
+  ) => Promise<void>;
+};
+
+const getBalanceStore = async (): Promise<BalanceStore | undefined> => {
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    return (env as CloudflareEnv & { UMBRA_KEYS?: BalanceStore }).UMBRA_KEYS;
+  } catch {
+    return undefined;
+  }
+};
+
+const balanceCacheKey = (address: string) =>
+  `bal:${createHash("sha256").update(address).digest("hex")}`;
+
+const readCachedBalance = async (
+  store: BalanceStore | undefined,
+  key: string,
+) => {
+  if (!store) return undefined;
+  try {
+    return await store.get(key);
+  } catch {
+    return undefined;
+  }
+};
+
+const writeCachedBalance = async (
+  store: BalanceStore | undefined,
+  key: string,
+  raw: bigint,
+) => {
+  if (!store) return;
+  try {
+    await store.put(key, raw.toString(10), { expirationTtl: 60 });
+  } catch {
+    // Cache failures must not block holder verification.
+  }
+};
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -58,13 +106,23 @@ export async function POST(request: Request) {
   const signer = recoverSigner(message, signature);
   if (!signer || signer.toLowerCase() !== normalizedAddress)
     return authenticationError("Signature does not match the address");
-  let decimals: number;
   let raw: bigint;
   try {
-    [decimals, raw] = await Promise.all([
-      getTokenDecimals(brand.token.address),
-      readTokenBalance(brand.token.address, normalizedAddress),
-    ]);
+    const store = await getBalanceStore();
+    const key = balanceCacheKey(normalizedAddress);
+    const cached = await readCachedBalance(store, key);
+    let fromCache = false;
+    if (cached !== null && cached !== undefined) {
+      try {
+        raw = BigInt(cached);
+        fromCache = true;
+      } catch {
+        raw = await readTokenBalance(brand.token.address, normalizedAddress);
+      }
+    } else {
+      raw = await readTokenBalance(brand.token.address, normalizedAddress);
+    }
+    if (!fromCache) await writeCachedBalance(store, key, raw);
   } catch (error) {
     return Response.json(
       {
@@ -77,8 +135,8 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
-  const balance = formatUnits(raw, decimals, 2);
-  const tier = tierForBalance(raw, decimals);
+  const balance = formatUnits(raw, brand.token.decimals, 2);
+  const tier = tierForBalance(raw, brand.token.decimals);
   const proof = createHolderProof(normalizedAddress, tier.id, balance);
   const proofClaims = readHolderProof(proof);
   if (!proofClaims)
