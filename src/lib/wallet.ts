@@ -203,7 +203,10 @@ export const getTokenDecimals = (token: string) => {
     if (!Number.isInteger(decimals) || decimals < 0 || decimals > 255)
       throw new WalletError("RPC_ERROR", "Token returned invalid decimals.");
     return decimals;
-  })();
+  })().catch((error: unknown) => {
+    tokenDecimalsPromises.delete(key);
+    throw error;
+  });
   tokenDecimalsPromises.set(key, promise);
   return promise;
 };
