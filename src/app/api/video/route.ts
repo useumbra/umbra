@@ -1,9 +1,6 @@
 import { NextRequest } from "next/server";
-import {
-  FalVideoProvider,
-  StubVideoProvider,
-} from "../../../lib/providers/video";
-import { UpstreamError } from "../../../lib/providers/upstream";
+import { FalVideoProvider, StubVideoProvider } from "@/lib/providers/video";
+import { UpstreamError } from "@/lib/providers/upstream";
 export const runtime = "nodejs";
 const stubProvider = new StubVideoProvider();
 

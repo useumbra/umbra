@@ -1,4 +1,4 @@
-import { brand } from "../../../../config/brand";
+import { brand } from "@/config/brand";
 import {
   challengeMessage,
   createHolderProof,
@@ -6,14 +6,10 @@ import {
   readHolderProof,
   recoverSigner,
   verifyChallenge,
-} from "../../../../lib/holder-proof";
-import { tierForBalance } from "../../../../lib/holder";
-import {
-  formatUnits,
-  getTokenDecimals,
-  readTokenBalance,
-} from "../../../../lib/wallet";
-import { UpstreamError } from "../../../../lib/providers/upstream";
+} from "@/lib/holder-proof";
+import { tierForBalance } from "@/lib/holder";
+import { formatUnits, getTokenDecimals, readTokenBalance } from "@/lib/wallet";
+import { UpstreamError } from "@/lib/providers/upstream";
 
 export const runtime = "nodejs";
 
