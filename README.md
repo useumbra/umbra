@@ -69,6 +69,7 @@ Venice runs as a second provider next to OpenRouter, with pricing, context windo
 - Read-only Robinhood Chain wallet reads for ETH and USDG.
 - The live $UMBRA contract address on Robinhood Chain is shown on the site.
 - Signed $UMBRA holder proof can set an API key tier and its enforced daily quota.
+- Verified holder proofs add 5%, 10%, or 20% credits to USDG top-ups from the verified wallet.
 - Conversation search, export, and import.
 - `/leak-check` diagnostics.
 - `/docs` and `/roadmap`.
@@ -76,7 +77,7 @@ Venice runs as a second provider next to OpenRouter, with pricing, context windo
 ### What is not done yet
 
 - Unlinkable credits.
-- Holder utility for the `$UMBRA` token.
+- Holder early access and voting.
 - Agentic tool use has not been tested against a real MCP server.
 - Smarter cross-conversation memory.
 - No automated end-to-end browser test suite.

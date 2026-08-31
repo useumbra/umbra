@@ -109,6 +109,11 @@ const roadmap = [
         description:
           "A signed holder proof retries congested premium models and upgrades the auto route for Circle and Council.",
       },
+      {
+        title: "$UMBRA credits",
+        description:
+          "Verified holders receive 5%, 10%, or 20% extra local credits on USDG top-ups sent from the verified wallet.",
+      },
     ],
   },
   {
@@ -129,11 +134,6 @@ const roadmap = [
       {
         title: "Optional accounts",
         description: "Opt-in sync, never required.",
-      },
-      {
-        title: "$UMBRA credits",
-        description:
-          "Convert held $UMBRA into browser-side credits at a holder rate.",
       },
       {
         title: "Holder votes",

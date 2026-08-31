@@ -635,11 +635,12 @@ console.log(completion.choices[0].message.content);`}</pre>
                       <tr>
                         <td>$UMBRA token</td>
                         <td>
-                          <Status>Planned</Status>
+                          <Status>Live</Status>
                         </td>
                         <td>
-                          Contract is live on Robinhood Chain; no token utility
-                          or transfer flow is implemented in the app.
+                          Contract is live on Robinhood Chain. Signed proofs
+                          enable tier checks, quotas, limits, priority routing,
+                          and holder-rate credits on verified USDG top-ups.
                         </td>
                       </tr>
                       <tr>

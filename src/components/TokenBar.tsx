@@ -8,8 +8,8 @@ const benefits = [
   {
     title: "Credits at a holder rate",
     description:
-      "Convert $UMBRA into Umbra credits, which stay encrypted in your browser.",
-    status: "planned",
+      "Verified holders get 5%, 10%, or 20% extra credits on a USDG top-up sent from the verified wallet.",
+    status: "live",
   },
   {
     title: "Higher limits",

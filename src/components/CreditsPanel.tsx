@@ -27,12 +27,22 @@ import {
   creditsForUsdg,
   findTransferToTreasury,
   parseAmount,
+  transferSender,
 } from "@/lib/funding";
+import { holderBonusCredits } from "@/lib/credits/holder-rate";
+import { loadHolderProof } from "@/lib/holder-storage";
+import { holderTiers } from "@/lib/holder";
 import { chainNetworks } from "@/config/chain";
 import { HolderTier } from "./HolderTier";
 import styles from "./CreditsPanel.module.css";
 
 const emptyVault: CreditVaultData = { ledger: [] };
+
+type HolderRate = {
+  address: string;
+  tier: string;
+  bonusPercent: number;
+};
 
 export function CreditsPanel() {
   const [encrypted, setEncrypted] = useState<EncryptedVault>();
@@ -49,10 +59,42 @@ export function CreditsPanel() {
   const [fundingMessage, setFundingMessage] = useState("");
   const [transactionHash, setTransactionHash] = useState("");
   const [claimHash, setClaimHash] = useState("");
+  const [holderRate, setHolderRate] = useState<HolderRate>();
   const { options, picking, run, choose, cancel } = useWallet();
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
     void loadEncryptedVault().then(setEncrypted);
+  }, []);
+  useEffect(() => {
+    const stored = loadHolderProof();
+    if (!stored) return;
+    void fetch("/api/holder/limits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proof: stored.proof }),
+    })
+      .then(async (response) => {
+        const body = (await response.json().catch(() => undefined)) as
+          | {
+              address?: unknown;
+              tier?: unknown;
+              creditBonusPercent?: unknown;
+            }
+          | undefined;
+        if (
+          !response.ok ||
+          typeof body?.address !== "string" ||
+          typeof body.tier !== "string" ||
+          typeof body.creditBonusPercent !== "number"
+        )
+          return;
+        setHolderRate({
+          address: body.address,
+          tier: body.tier,
+          bonusPercent: body.creditBonusPercent,
+        });
+      })
+      .catch(() => undefined);
   }, []);
 
   const create = async () => {
@@ -213,10 +255,30 @@ export function CreditsPanel() {
     }
     const decimals = usdgDecimals ?? (await getUsdgDecimals());
     const credits = creditsForUsdg(amount, decimals);
-    await update(addGrant(vault, credits, `On-chain USDG top-up — ${hash}`));
+    const sender = transferSender(receipt);
+    const bonus =
+      holderRate &&
+      sender &&
+      sender === holderRate.address.toLowerCase() &&
+      holderRate.bonusPercent > 0
+        ? holderBonusCredits(credits, holderRate.tier)
+        : 0;
+    const tierName =
+      holderTiers.find((tier) => tier.id === holderRate?.tier)?.name ??
+      holderRate?.tier;
+    let nextVault = addGrant(vault, credits, `On-chain USDG top-up — ${hash}`);
+    if (bonus > 0 && tierName)
+      nextVault = addGrant(
+        nextVault,
+        bonus,
+        `Holder bonus (${tierName}, +${holderRate?.bonusPercent}%) — ${hash}`,
+      );
+    await update(nextVault);
     setFundingStatus("Credits added");
     setFundingMessage(
-      `${credits} credits added from the verified USDG transfer.`,
+      bonus > 0 && tierName
+        ? `${credits} credits added from the verified USDG transfer, plus ${bonus} holder bonus credits (${tierName} +${holderRate?.bonusPercent}%).`
+        : `${credits} credits added from the verified USDG transfer.`,
     );
     return true;
   };
@@ -470,9 +532,24 @@ export function CreditsPanel() {
               </label>
               <p className="note">
                 Credits after verification:{" "}
-                {parsedAmount !== undefined && usdgDecimals !== undefined
-                  ? creditsForUsdg(parsedAmount, usdgDecimals)
-                  : "—"}
+                {parsedAmount !== undefined && usdgDecimals !== undefined ? (
+                  <>
+                    {creditsForUsdg(parsedAmount, usdgDecimals)}
+                    {holderRate &&
+                    holderRate.bonusPercent > 0 &&
+                    holderBonusCredits(
+                      creditsForUsdg(parsedAmount, usdgDecimals),
+                      holderRate.tier,
+                    ) > 0
+                      ? ` (+${holderBonusCredits(
+                          creditsForUsdg(parsedAmount, usdgDecimals),
+                          holderRate.tier,
+                        )} holder bonus)`
+                      : ""}
+                  </>
+                ) : (
+                  "—"
+                )}
               </p>
               {amountError && <p role="alert">{amountError}</p>}
               <button

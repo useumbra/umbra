@@ -1,5 +1,6 @@
 import { limitsForTier } from "@/lib/holder-limits";
 import { readHolderProof } from "@/lib/holder-proof";
+import { holderBonusPercent } from "@/lib/credits/holder-rate";
 
 export const runtime = "nodejs";
 
@@ -39,5 +40,10 @@ export async function POST(request: Request) {
   const claims = proof ? readHolderProof(proof) : undefined;
   if (proof && !claims) return invalid();
   const tier = claims?.tier;
-  return Response.json({ tier: tier ?? "base", limits: limitsForTier(tier) });
+  return Response.json({
+    tier: tier ?? "base",
+    limits: limitsForTier(tier),
+    ...(claims ? { address: claims.addr } : {}),
+    creditBonusPercent: holderBonusPercent(tier),
+  });
 }

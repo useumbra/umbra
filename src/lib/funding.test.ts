@@ -5,6 +5,7 @@ import {
   findTransferToTreasury,
   parseAmount,
   TRANSFER_TOPIC,
+  transferSender,
 } from "./funding";
 
 const token = "0x1111111111111111111111111111111111111111";
@@ -101,5 +102,19 @@ describe("USDG funding helpers", () => {
     expect(creditsForUsdg(BigInt(1_500_000), 6)).toBe(1.5);
     expect(creditsForUsdg(BigInt(2), 0)).toBe(2);
     expect(() => creditsForUsdg(-BigInt(1), 6)).toThrow();
+  });
+
+  it("extracts a valid transfer sender", () => {
+    expect(
+      transferSender({
+        from: "0xABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD",
+      }),
+    ).toBe("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd");
+    expect(transferSender({})).toBeUndefined();
+    expect(transferSender({ from: 42 })).toBeUndefined();
+    expect(
+      transferSender({ from: "0xabcdefabcdefabcdefabcdefabcdef" }),
+    ).toBeUndefined();
+    expect(transferSender(null)).toBeUndefined();
   });
 });

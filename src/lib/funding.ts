@@ -79,6 +79,14 @@ export const findTransferToTreasury = (
   return found ? total : undefined;
 };
 
+export const transferSender = (receipt: unknown): string | undefined => {
+  if (typeof receipt !== "object" || receipt === null) return undefined;
+  const from = (receipt as { from?: unknown }).from;
+  return typeof from === "string" && addressPattern.test(from)
+    ? from.toLowerCase()
+    : undefined;
+};
+
 export const creditsForUsdg = (amount: bigint, decimals: number) => {
   if (amount < BigInt(0) || !Number.isInteger(decimals) || decimals < 0)
     throw new Error("Invalid USDG amount");

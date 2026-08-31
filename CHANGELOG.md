@@ -15,6 +15,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - A live $UMBRA tier check now reads wallet balances without activating perks.
 - Signed $UMBRA holder proofs now set enforced per-tier API quotas.
 - Verified holder tiers now raise Council, chat, and UmbraCode capacity limits.
+- Verified holder proofs now add holder-rate credits to eligible USDG top-ups.
 - Browser-local memory suggestions and voice dictation/read-aloud controls are now available.
 
 ### Changed
