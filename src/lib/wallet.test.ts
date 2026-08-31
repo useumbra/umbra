@@ -181,4 +181,31 @@ describe("wallet helpers", () => {
     await result;
     expect(fetch).toHaveBeenCalledTimes(3);
   });
+
+  it("fails over to the public Robinhood Chain RPC", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("busy", { status: 429 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ result: "0x7" }), { status: 200 }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const pending = readTokenBalance(
+      `0x${"1".repeat(40)}`,
+      `0x${"2".repeat(40)}`,
+    );
+    const result = expect(pending).resolves.toBe(BigInt(7));
+    await vi.runAllTimersAsync();
+
+    await result;
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "https://rpc.mainnet.chain.robinhood.com",
+    );
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      "https://robinhood-rpc.publicnode.com",
+    );
+  });
 });

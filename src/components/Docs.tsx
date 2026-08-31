@@ -496,7 +496,8 @@ console.log(completion.choices[0].message.content);`}</pre>
                       <tr>
                         <td>RPC</td>
                         <td>
-                          <code>{chainNetworks.mainnet.rpc}</code>
+                          <code>{chainNetworks.mainnet.rpc}</code> with a public
+                          RPC fallback for read-only on-chain reads
                         </td>
                       </tr>
                       <tr>

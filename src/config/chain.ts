@@ -9,6 +9,7 @@ export const chainNetworks = {
     name: "Robinhood Chain",
     chainId: 4663,
     rpc: "https://rpc.mainnet.chain.robinhood.com",
+    rpcFallbacks: ["https://robinhood-rpc.publicnode.com"],
     explorer: "https://robinhoodchain.blockscout.com",
     gasToken: "ETH",
     stack: "Arbitrum Orbit L2",

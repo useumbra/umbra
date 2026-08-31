@@ -71,6 +71,10 @@ type RpcResponse<T> = {
 };
 
 const retryableRpcStatuses = new Set([0, 429, 500, 502, 503]);
+const rpcEndpoints = [
+  chainNetworks.mainnet.rpc,
+  ...chainNetworks.mainnet.rpcFallbacks,
+];
 
 const rpcError = (error: { code?: unknown } | undefined) => {
   const code = error?.code;
@@ -89,7 +93,7 @@ const rpcRequest = async <T>(
     try {
       let response: Response;
       try {
-        response = await fetch(chainNetworks.mainnet.rpc, {
+        response = await fetch(rpcEndpoints[attempt % rpcEndpoints.length], {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
