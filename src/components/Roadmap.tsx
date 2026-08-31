@@ -115,9 +115,29 @@ const roadmap = [
         description: "Opt-in sync, never required.",
       },
       {
-        title: "$UMBRA utility",
+        title: "$UMBRA holder tier",
         description:
-          "The token contract is live on Robinhood Chain; holder utility inside Umbra is not built yet.",
+          "Read a wallet's $UMBRA balance on Robinhood Chain and unlock a tier without an account.",
+      },
+      {
+        title: "$UMBRA credits",
+        description:
+          "Convert held $UMBRA into browser-side credits at a holder rate.",
+      },
+      {
+        title: "Holder limits and routing",
+        description:
+          "Higher UmbraCode and Council limits, plus priority routing on premium models.",
+      },
+      {
+        title: "Holder API quota",
+        description:
+          "A quota on the OpenAI-compatible endpoint tied to a verified balance.",
+      },
+      {
+        title: "Holder votes",
+        description:
+          "Vote on new providers and on which redaction detectors ship next.",
       },
     ],
   },
