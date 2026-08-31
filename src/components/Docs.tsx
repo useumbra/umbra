@@ -472,6 +472,10 @@ console.log(completion.choices[0].message.content);`}</pre>
                   grants matching local credits once per transaction hash.
                 </p>
                 <p>
+                  Wallet connections support multiple browser extensions through
+                  EIP-6963, plus WalletConnect QR sessions when configured.
+                </p>
+                <p>
                   Sending USDG transfers real funds. It does not create an
                   account or imply refunds. The treasury address is public build
                   configuration from <code>NEXT_PUBLIC_UMBRA_TREASURY</code>;
@@ -590,8 +594,8 @@ console.log(completion.choices[0].message.content);`}</pre>
                         <td>
                           Reads a wallet&apos;s $UMBRA balance through the
                           public Robinhood Chain RPC and can verify ownership
-                          with a signed wallet message; additional holder perks
-                          remain unimplemented.
+                          with a signed wallet message. Signed proof also
+                          enforces the holder&apos;s API quota and tier limits.
                         </td>
                       </tr>
                       <tr>

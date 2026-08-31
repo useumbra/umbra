@@ -15,7 +15,9 @@ import {
   type StoredHolderProof,
 } from "@/lib/holder-storage";
 import { type HolderLimits } from "@/lib/holder-limits";
-import { WalletError, type Eip1193Provider } from "@/lib/wallet";
+import { useWallet } from "@/lib/use-wallet";
+import { WalletError } from "@/lib/wallet";
+import { WalletPicker } from "./WalletPicker";
 import styles from "./HolderTier.module.css";
 
 const requestHolderLimits = async (
@@ -43,6 +45,7 @@ export function HolderTier() {
   const [busy, setBusy] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
+  const { options, picking, run, choose, cancel } = useWallet();
 
   useEffect(() => {
     const stored = loadHolderProof();
@@ -53,10 +56,10 @@ export function HolderTier() {
   const checkTier = async () => {
     setBusy(true);
     setError("");
-    const provider = (window as Window & { ethereum?: Eip1193Provider })
-      .ethereum;
     try {
-      setStatus(await readHolderStatus(provider, brand.token.address));
+      await run(async (provider) => {
+        setStatus(await readHolderStatus(provider, brand.token.address));
+      });
     } catch (caught) {
       if (caught instanceof WalletError) {
         setError(caught.message);
@@ -72,85 +75,83 @@ export function HolderTier() {
     if (!status) return;
     setVerifying(true);
     setError("");
-    const provider = (window as Window & { ethereum?: Eip1193Provider })
-      .ethereum;
     try {
-      if (!provider)
-        throw new WalletError(
-          "NO_WALLET",
-          "No compatible wallet was detected.",
-        );
-      const challengeResponse = await fetch("/api/holder/challenge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: status.address }),
+      await run(async (provider) => {
+        const challengeResponse = await fetch("/api/holder/challenge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: status.address }),
+        });
+        const challenge = (await challengeResponse
+          .json()
+          .catch(() => undefined)) as
+          | {
+              message?: string;
+              error?: { message?: string };
+              nonce?: string;
+              expiresAt?: number;
+            }
+          | undefined;
+        if (
+          !challengeResponse.ok ||
+          !challenge?.message ||
+          !challenge.nonce ||
+          typeof challenge.expiresAt !== "number"
+        )
+          throw new Error(
+            challenge?.error?.message ??
+              "Could not verify ownership right now.",
+          );
+        const signature = await provider.request({
+          method: "personal_sign",
+          params: [challenge.message, status.address],
+        });
+        if (typeof signature !== "string")
+          throw new Error("Could not verify ownership right now.");
+        const verifyResponse = await fetch("/api/holder/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            address: status.address,
+            nonce: challenge.nonce,
+            expiresAt: challenge.expiresAt,
+            signature,
+          }),
+        });
+        const verified = (await verifyResponse
+          .json()
+          .catch(() => undefined)) as
+          | {
+              address?: string;
+              tier?: string;
+              balance?: string;
+              proof?: string;
+              expiresAt?: number;
+              error?: { message?: string };
+            }
+          | undefined;
+        if (
+          !verifyResponse.ok ||
+          typeof verified?.address !== "string" ||
+          typeof verified.tier !== "string" ||
+          typeof verified.balance !== "string" ||
+          typeof verified.proof !== "string" ||
+          typeof verified.expiresAt !== "number"
+        )
+          throw new Error(
+            verified?.error?.message ?? "Could not verify ownership right now.",
+          );
+        const stored: StoredHolderProof = {
+          address: verified.address,
+          tier: verified.tier,
+          balance: verified.balance,
+          proof: verified.proof,
+          expiresAt: verified.expiresAt,
+        };
+        saveHolderProof(stored);
+        setProof(stored);
+        setActiveLimits(await requestHolderLimits(stored.proof));
       });
-      const challenge = (await challengeResponse
-        .json()
-        .catch(() => undefined)) as
-        | {
-            message?: string;
-            error?: { message?: string };
-            nonce?: string;
-            expiresAt?: number;
-          }
-        | undefined;
-      if (
-        !challengeResponse.ok ||
-        !challenge?.message ||
-        !challenge.nonce ||
-        typeof challenge.expiresAt !== "number"
-      )
-        throw new Error(
-          challenge?.error?.message ?? "Could not verify ownership right now.",
-        );
-      const signature = await provider.request({
-        method: "personal_sign",
-        params: [challenge.message, status.address],
-      });
-      if (typeof signature !== "string")
-        throw new Error("Could not verify ownership right now.");
-      const verifyResponse = await fetch("/api/holder/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          address: status.address,
-          nonce: challenge.nonce,
-          expiresAt: challenge.expiresAt,
-          signature,
-        }),
-      });
-      const verified = (await verifyResponse.json().catch(() => undefined)) as
-        | {
-            address?: string;
-            tier?: string;
-            balance?: string;
-            proof?: string;
-            expiresAt?: number;
-            error?: { message?: string };
-          }
-        | undefined;
-      if (
-        !verifyResponse.ok ||
-        typeof verified?.address !== "string" ||
-        typeof verified.tier !== "string" ||
-        typeof verified.balance !== "string" ||
-        typeof verified.proof !== "string" ||
-        typeof verified.expiresAt !== "number"
-      )
-        throw new Error(
-          verified?.error?.message ?? "Could not verify ownership right now.",
-        );
-      const stored: StoredHolderProof = {
-        address: verified.address,
-        tier: verified.tier,
-        balance: verified.balance,
-        proof: verified.proof,
-        expiresAt: verified.expiresAt,
-      };
-      saveHolderProof(stored);
-      setProof(stored);
-      setActiveLimits(await requestHolderLimits(stored.proof));
     } catch (caught) {
       if (
         typeof caught === "object" &&
@@ -190,7 +191,8 @@ export function HolderTier() {
       <p className={styles.note}>
         Reading your balance needs no signature and sends nothing to Umbra.
         Verifying ownership signs a message — no gas, no transaction — so your
-        API keys get your tier&apos;s quota. No other perk is enforced yet.
+        API keys get your tier&apos;s quota and your tier&apos;s enforced
+        benefits. Holder-rate credits, early access, and votes remain planned.
       </p>
       <button
         className={styles.button}
@@ -211,8 +213,10 @@ export function HolderTier() {
         </button>
       )}
       <p className={styles.verificationNote}>
-        Verification is signed proof, not a transaction. It gives your API keys
-        the quota of your tier — nothing else is enforced yet.
+        Verification is signed proof, not a transaction. It enforces your
+        tier&apos;s API quota, Council seats, chat and UmbraCode token ceilings,
+        and priority routing. Holder-rate credits, early access, and votes
+        remain planned.
       </p>
       {error && (
         <p className={styles.error} role="alert">
@@ -238,7 +242,7 @@ export function HolderTier() {
           <div className={styles.perks}>
             <div className={styles.heading}>
               <h3>{status.tier.name} perks</h3>
-              <span className={styles.planned}>Planned</span>
+              <span className={styles.planned}>Partly live</span>
             </div>
             <ul>
               {status.tier.perks.map((perk) => (
@@ -253,6 +257,9 @@ export function HolderTier() {
             </p>
           )}
         </div>
+      )}
+      {picking && (
+        <WalletPicker options={options} onChoose={choose} onCancel={cancel} />
       )}
       {proof && (
         <div className={styles.verified}>

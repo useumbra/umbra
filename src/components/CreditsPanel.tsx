@@ -19,9 +19,10 @@ import {
   sendUsdgTransfer,
   waitForReceipt,
   WalletError,
-  type Eip1193Provider,
   type WalletBalances,
 } from "@/lib/wallet";
+import { useWallet } from "@/lib/use-wallet";
+import { WalletPicker } from "./WalletPicker";
 import {
   creditsForUsdg,
   findTransferToTreasury,
@@ -48,6 +49,7 @@ export function CreditsPanel() {
   const [fundingMessage, setFundingMessage] = useState("");
   const [transactionHash, setTransactionHash] = useState("");
   const [claimHash, setClaimHash] = useState("");
+  const { options, picking, run, choose, cancel } = useWallet();
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
     void loadEncryptedVault().then(setEncrypted);
@@ -130,10 +132,10 @@ export function CreditsPanel() {
   const connectWallet = async () => {
     setWalletBusy(true);
     setWalletMessage("");
-    const provider = (window as Window & { ethereum?: Eip1193Provider })
-      .ethereum;
     try {
-      setWallet(await connectAndReadBalances(provider));
+      await run(async (provider) => {
+        setWallet(await connectAndReadBalances(provider));
+      });
       setWalletMessage(
         "Balances loaded. The address is ready for an on-chain USDG top-up.",
       );
@@ -218,29 +220,30 @@ export function CreditsPanel() {
     return true;
   };
   const sendFunding = async () => {
-    if (!vault || !chainNetworks.mainnet.treasury) return;
+    const treasury = chainNetworks.mainnet.treasury;
+    if (!vault || !treasury) return;
     setFundingBusy(true);
     setFundingMessage("");
     setTransactionHash("");
     try {
-      if (usdgDecimals === undefined)
-        throw new Error("USDG token decimals are still loading.");
-      const amount = parseAmount(usdgAmount, usdgDecimals);
-      setFundingStatus("Waiting for wallet…");
-      const provider = (window as Window & { ethereum?: Eip1193Provider })
-        .ethereum;
-      const connected = wallet ?? (await connectAndReadBalances(provider));
-      setWallet(connected);
-      setFundingStatus("Waiting for transaction approval…");
-      const hash = await sendUsdgTransfer(provider, {
-        from: connected.address,
-        to: chainNetworks.mainnet.treasury,
-        amount,
+      await run(async (provider) => {
+        if (usdgDecimals === undefined)
+          throw new Error("USDG token decimals are still loading.");
+        const amount = parseAmount(usdgAmount, usdgDecimals);
+        setFundingStatus("Waiting for wallet…");
+        const connected = wallet ?? (await connectAndReadBalances(provider));
+        setWallet(connected);
+        setFundingStatus("Waiting for transaction approval…");
+        const hash = await sendUsdgTransfer(provider, {
+          from: connected.address,
+          to: treasury,
+          amount,
+        });
+        setTransactionHash(hash);
+        setFundingStatus("Waiting for confirmation…");
+        const receipt = await waitForReceipt(hash);
+        await claimVerifiedTransfer(hash, receipt);
       });
-      setTransactionHash(hash);
-      setFundingStatus("Waiting for confirmation…");
-      const receipt = await waitForReceipt(hash);
-      await claimVerifiedTransfer(hash, receipt);
     } catch (error) {
       setFundingStatus("Top-up failed");
       setFundingMessage(
@@ -312,9 +315,16 @@ export function CreditsPanel() {
                 ? "Refresh balances"
                 : "Connect wallet"}
           </button>
+          {picking && (
+            <WalletPicker
+              options={options}
+              onChoose={choose}
+              onCancel={cancel}
+            />
+          )}
           {!wallet && !walletMessage && (
             <p className="note">
-              A compatible injected wallet is required. The address is not
+              Choose a wallet extension or WalletConnect. The address is not
               stored in the encrypted credits vault.
             </p>
           )}

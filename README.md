@@ -172,13 +172,14 @@ Open [http://localhost:3000](http://localhost:3000). The `predev` script copies 
 
 Copy `.env.example` to `.env.local` for local development:
 
-| Variable                     | Purpose                                                                                                                                |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENROUTER_API_KEY`         | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).     |
-| `VENICE_API_KEY`             | Enables the Venice models and the Venice-backed MCP endpoint. Get a key from [venice.ai/settings/api](https://venice.ai/settings/api). |
-| `FAL_KEY`                    | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).         |
-| `UMBRA_API_SECRET`           | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                                |
-| `NEXT_PUBLIC_UMBRA_TREASURY` | Enables USDG top-ups to this Robinhood Chain treasury address. Must be a valid EVM address.                                            |
+| Variable                               | Purpose                                                                                                                                |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`                   | Enables live streaming chat through OpenRouter. Get a key from [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).     |
+| `VENICE_API_KEY`                       | Enables the Venice models and the Venice-backed MCP endpoint. Get a key from [venice.ai/settings/api](https://venice.ai/settings/api). |
+| `FAL_KEY`                              | Enables live image and video generation through fal.ai. Get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).         |
+| `UMBRA_API_SECRET`                     | Signs and verifies API tokens for the OpenAI-compatible API endpoint; self-hosters can use it directly.                                |
+| `NEXT_PUBLIC_UMBRA_TREASURY`           | Enables USDG top-ups to this Robinhood Chain treasury address. Must be a valid EVM address.                                            |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Optional WalletConnect project ID for mobile wallet QR connections. WalletConnect is hidden when empty.                                |
 
 The production treasury is configured in the committed `.env.production`.
 This `NEXT_PUBLIC_` value is public build configuration, not a secret.

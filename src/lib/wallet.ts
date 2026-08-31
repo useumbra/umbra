@@ -177,6 +177,29 @@ const switchToRobinhood = async (provider: Eip1193Provider) => {
       typeof error === "object" && error !== null && "code" in error
         ? error.code
         : undefined;
+    const message = error instanceof Error ? error.message : String(error);
+    const unsupported =
+      code === 4200 ||
+      code === -32601 ||
+      /(not supported|unsupported|not available|does not exist|method not found)/i.test(
+        message,
+      );
+    if (unsupported) {
+      try {
+        const currentChain = await provider.request({ method: "eth_chainId" });
+        if (
+          typeof currentChain === "string" &&
+          currentChain.toLowerCase() === chainId
+        )
+          return;
+      } catch {
+        // Fall through to the same clear wrong-network message.
+      }
+      throw new WalletError(
+        "WRONG_CHAIN",
+        "Switch your wallet to Robinhood Chain (chain 4663) and try again.",
+      );
+    }
     if (code !== 4902)
       throw code === 4001
         ? new WalletError("USER_REJECTED", "Network switch was rejected.")

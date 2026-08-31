@@ -208,4 +208,42 @@ describe("wallet helpers", () => {
       "https://robinhood-rpc.publicnode.com",
     );
   });
+
+  it("accepts an already active chain when switching is unsupported", async () => {
+    const provider: Eip1193Provider = {
+      request: vi.fn(async (args) => {
+        if (args.method === "wallet_switchEthereumChain") throw { code: 4200 };
+        if (args.method === "eth_chainId") return "0x1237";
+        if (args.method === "eth_requestAccounts")
+          return ["0x00000000000000000000000000000000000000Ab"];
+        return null;
+      }),
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ result: "0x0" }), { status: 200 }),
+      ),
+    );
+    await expect(connectAndReadBalances(provider)).resolves.toMatchObject({
+      address: "0x00000000000000000000000000000000000000Ab",
+    });
+  });
+
+  it("rejects an unsupported switch when the wallet is on another chain", async () => {
+    const provider: Eip1193Provider = {
+      request: vi.fn(async (args) => {
+        if (args.method === "wallet_switchEthereumChain")
+          throw { code: -32601 };
+        if (args.method === "eth_chainId") return "0x1";
+        return ["0x00000000000000000000000000000000000000Ab"];
+      }),
+    };
+    await expect(connectAndReadBalances(provider)).rejects.toMatchObject({
+      code: "WRONG_CHAIN",
+      message:
+        "Switch your wallet to Robinhood Chain (chain 4663) and try again.",
+    });
+  });
 });
