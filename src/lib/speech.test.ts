@@ -24,4 +24,10 @@ describe("browser speech helpers", () => {
     expect(() => speak("hello")).not.toThrow();
     expect(() => stopSpeaking()).not.toThrow();
   });
+
+  it("ignores a completion callback when playback is unavailable", () => {
+    const onEnd = vi.fn();
+    expect(() => speak("hello", onEnd)).not.toThrow();
+    expect(onEnd).not.toHaveBeenCalled();
+  });
 });

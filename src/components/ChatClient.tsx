@@ -581,7 +581,7 @@ export function ChatClient() {
       ]);
       await saveConversation(finished);
       if (voiceAutoSpeak && assistant.content) {
-        speak(assistant.content);
+        speak(assistant.content, () => setSpeakingId(undefined));
         setSpeakingId(assistant.id);
       }
       setAttachments([]);
@@ -1207,7 +1207,9 @@ export function ChatClient() {
                             stopSpeaking();
                             setSpeakingId(undefined);
                           } else {
-                            speak(message.content);
+                            speak(message.content, () =>
+                              setSpeakingId(undefined),
+                            );
                             setSpeakingId(message.id);
                           }
                         }}

@@ -85,13 +85,14 @@ describe("wallet helpers", () => {
       vi.fn(async () => new Response("unavailable", { status: 503 })),
     );
 
-    await expect(
-      import("./wallet").then(({ readTokenBalance }) =>
+    const error = await import("./wallet")
+      .then(({ readTokenBalance }) =>
         readTokenBalance(`0x${"1".repeat(40)}`, `0x${"2".repeat(40)}`),
-      ),
-    ).rejects.toMatchObject({
-      status: 503,
-    });
+      )
+      .catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(UpstreamError);
+    expect(error).toMatchObject({ status: 503 });
   });
 
   it("surfaces JSON-RPC error codes without upstream details", async () => {

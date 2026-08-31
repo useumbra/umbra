@@ -69,10 +69,13 @@ export const speechSupported = (): boolean =>
   "speechSynthesis" in window &&
   "SpeechSynthesisUtterance" in window;
 
-export const speak = (text: string): void => {
+export const speak = (text: string, onEnd?: () => void): void => {
   if (!speechSupported()) return;
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.onend = () => onEnd?.();
+  utterance.onerror = () => onEnd?.();
+  window.speechSynthesis.speak(utterance);
 };
 
 export const stopSpeaking = (): void => {
