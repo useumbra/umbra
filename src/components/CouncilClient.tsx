@@ -6,6 +6,7 @@ import { redact, restore, Vault } from "@/lib/privacy";
 import { getSetting, saveSetting } from "@/lib/storage";
 import { recordUsage, type UsageInput } from "@/lib/usage";
 import type { ProviderMessage } from "@/lib/providers/types";
+import { useHolderLimits } from "@/lib/use-holder-limits";
 import styles from "./CouncilClient.module.css";
 
 type SeatState = {
@@ -20,11 +21,15 @@ const streamSeat = async (
   model: string,
   prompt: string,
   signal: AbortSignal,
+  holderProof: string | undefined,
   onUpdate: (content: string) => void,
 ) => {
   const response = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(holderProof ? { "x-umbra-holder-proof": holderProof } : {}),
+    },
     body: JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt } satisfies ProviderMessage],
@@ -75,6 +80,7 @@ const streamSeat = async (
 };
 
 export function CouncilClient() {
+  const { limits, proof } = useHolderLimits();
   const [seats, setSeats] = useState(initialSeats);
   const [prompt, setPrompt] = useState("");
   const [mode, setMode] = useState<"smart" | "full" | "off">("smart");
@@ -92,14 +98,14 @@ export function CouncilClient() {
       if (
         Array.isArray(saved) &&
         saved.length > 0 &&
-        saved.length <= 3 &&
+        saved.length <= limits.councilSeats &&
         saved.every((item): item is string =>
           models.some((model) => model.id === item),
         )
       )
-        setSeats(saved);
+        setSeats(saved.slice(0, limits.councilSeats));
     });
-  }, []);
+  }, [limits.councilSeats]);
 
   const updateSeat = (index: number, model: string) => {
     setSeats((current) => {
@@ -111,7 +117,7 @@ export function CouncilClient() {
   };
 
   const addSeat = () => {
-    if (seats.length >= 3) return;
+    if (seats.length >= limits.councilSeats) return;
     const next = [...seats, models[1].id];
     setSeats(next);
     void saveSetting("council-seats", next);
@@ -141,6 +147,7 @@ export function CouncilClient() {
             model,
             protectedPrompt.text,
             controller.signal,
+            proof?.proof,
             (content) =>
               setResults((current) =>
                 current.map((seat, seatIndex) =>
@@ -237,11 +244,16 @@ export function CouncilClient() {
               )}
             </label>
           ))}
-          {seats.length < 3 && (
+          {seats.length < limits.councilSeats && (
             <button className={styles.button} type="button" onClick={addSeat}>
               Add seat
             </button>
           )}
+          <p className="note">
+            {limits.councilSeats === 3
+              ? "3 seats on your tier — Circle and Council unlock 5."
+              : "5 seats unlocked by your $UMBRA tier."}
+          </p>
           <label>
             <span className="note">Privacy</span>{" "}
             <select

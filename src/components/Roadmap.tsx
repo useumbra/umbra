@@ -86,12 +86,17 @@ const roadmap = [
       {
         title: "$UMBRA tier check",
         description:
-          "Read a wallet's $UMBRA balance on Robinhood Chain and see its tier; no perk is enforced yet.",
+          "Read a wallet's $UMBRA balance on Robinhood Chain and see its tier; signed proofs unlock enforced limits.",
       },
       {
         title: "Holder API quota",
         description:
           "A signed wallet proof sets your key's tier and its enforced daily request quota.",
+      },
+      {
+        title: "Holder limits",
+        description:
+          "A signed holder proof raises Council seats and the max-token ceiling in chat and UmbraCode.",
       },
     ],
   },
@@ -130,9 +135,8 @@ const roadmap = [
           "Convert held $UMBRA into browser-side credits at a holder rate.",
       },
       {
-        title: "Holder limits and routing",
-        description:
-          "Higher UmbraCode and Council limits, plus priority routing on premium models.",
+        title: "Holder priority routing",
+        description: "Priority routing on premium models remains planned.",
       },
       {
         title: "Holder votes",

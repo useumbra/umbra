@@ -576,8 +576,8 @@ console.log(completion.choices[0].message.content);`}</pre>
                         <td>
                           Reads a wallet&apos;s $UMBRA balance through the
                           public Robinhood Chain RPC and can verify ownership
-                          with a signed wallet message; other holder perks grant
-                          nothing yet.
+                          with a signed wallet message; additional holder perks
+                          remain unimplemented.
                         </td>
                       </tr>
                       <tr>
@@ -589,6 +589,17 @@ console.log(completion.choices[0].message.content);`}</pre>
                           Signed wallet proof sets a key&apos;s tier; daily
                           request quota per key is 200 (base), 1,000 (Holder),
                           5,000 (Circle), 20,000 (Council).
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Holder limits</td>
+                        <td>
+                          <Status>Live</Status>
+                        </td>
+                        <td>
+                          A signed holder proof raises Council seats (5 on
+                          Circle and Council) and the max-token ceiling in chat
+                          and UmbraCode.
                         </td>
                       </tr>
                       <tr>

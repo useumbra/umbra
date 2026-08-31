@@ -5,6 +5,8 @@ import Link from "next/link";
 import { brand } from "@/config/brand";
 import { models } from "@/config/models";
 import { Vault, redact } from "@/lib/privacy";
+import { holderTiers } from "@/lib/holder";
+import { useHolderLimits } from "@/lib/use-holder-limits";
 import {
   inlineCodeProject,
   parseCodeProject,
@@ -24,6 +26,7 @@ The CSS and JS blocks may be omitted when unnecessary. Do not use external asset
 Do not use localStorage, sessionStorage, IndexedDB, or other APIs unavailable in an allow-scripts-only iframe. Keep interactive state in memory.`;
 
 export function CodeGenerator() {
+  const { limits, proof, tier } = useHolderLimits();
   const [prompt, setPrompt] = useState("");
   const [mode, setMode] = useState<"smart" | "full" | "off">("smart");
   const [project, setProject] = useState<CodeProject>({
@@ -71,10 +74,13 @@ export function CodeGenerator() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(proof ? { "x-umbra-holder-proof": proof.proof } : {}),
+        },
         body: JSON.stringify({
           model: coder.id,
-          maxTokens: 6000,
+          maxTokens: limits.codeMaxTokens,
           messages: [
             { role: "system", content: instruction },
             { role: "user", content: protectedPrompt.text },
@@ -220,6 +226,13 @@ export function CodeGenerator() {
                 </button>
               )}
             </div>
+            {tier !== "base" && (
+              <p className="note">
+                Longer builds unlocked by your{" "}
+                {holderTiers.find((item) => item.id === tier)?.name ?? tier}{" "}
+                tier.
+              </p>
+            )}
             {error && (
               <p className={styles.error} role="alert">
                 {error}

@@ -14,18 +14,40 @@ import {
   saveHolderProof,
   type StoredHolderProof,
 } from "@/lib/holder-storage";
+import { type HolderLimits } from "@/lib/holder-limits";
 import { WalletError, type Eip1193Provider } from "@/lib/wallet";
 import styles from "./HolderTier.module.css";
+
+const requestHolderLimits = async (
+  proof: string,
+): Promise<HolderLimits | undefined> => {
+  try {
+    const response = await fetch("/api/holder/limits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proof }),
+    });
+    const body = (await response.json().catch(() => undefined)) as
+      { limits?: HolderLimits } | undefined;
+    if (!response.ok || !body?.limits) return undefined;
+    return body.limits;
+  } catch {
+    return undefined;
+  }
+};
 
 export function HolderTier() {
   const [status, setStatus] = useState<HolderStatus>();
   const [proof, setProof] = useState<StoredHolderProof>();
+  const [activeLimits, setActiveLimits] = useState<HolderLimits>();
   const [busy, setBusy] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setProof(loadHolderProof());
+    const stored = loadHolderProof();
+    setProof(stored);
+    if (stored) void requestHolderLimits(stored.proof).then(setActiveLimits);
   }, []);
 
   const checkTier = async () => {
@@ -128,6 +150,7 @@ export function HolderTier() {
       };
       saveHolderProof(stored);
       setProof(stored);
+      setActiveLimits(await requestHolderLimits(stored.proof));
     } catch (caught) {
       if (
         typeof caught === "object" &&
@@ -237,6 +260,13 @@ export function HolderTier() {
             Verified as {proofTierName} · proof valid until{" "}
             {new Date(proof.expiresAt * 1000).toLocaleString()}
           </span>
+          {activeLimits && (
+            <span>
+              Active limits: {activeLimits.councilSeats} Council seats ·{" "}
+              {activeLimits.chatMaxTokens} max tokens ·{" "}
+              {activeLimits.codeMaxTokens} in UmbraCode.
+            </span>
+          )}
           <button
             className={styles.forgetButton}
             type="button"

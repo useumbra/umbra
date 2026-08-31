@@ -1,4 +1,6 @@
 import { NextRequest } from "next/server";
+import { limitsForTier } from "@/lib/holder-limits";
+import { tierFromRequest } from "@/lib/holder-request";
 import { availableModels, providerFor } from "@/lib/providers/select";
 import type { ReasoningEffort } from "@/lib/providers/types";
 import { route } from "@/lib/router";
@@ -16,6 +18,7 @@ export async function POST(request: NextRequest) {
     webSearch?: boolean;
     temperature?: number;
   };
+  const limits = limitsForTier(tierFromRequest(request));
   // Never log message content at this boundary; prompts are user-private data.
   const requestedModel = body.model ?? "umbra-auto";
   const configuredModels = availableModels();
@@ -40,9 +43,8 @@ export async function POST(request: NextRequest) {
   const maxTokens =
     typeof body.maxTokens === "number" &&
     Number.isFinite(body.maxTokens) &&
-    body.maxTokens >= 256 &&
-    body.maxTokens <= 8192
-      ? Math.floor(body.maxTokens)
+    body.maxTokens >= 256
+      ? Math.min(Math.floor(body.maxTokens), limits.chatMaxTokens)
       : undefined;
   const temperature =
     typeof body.temperature === "number" &&
@@ -64,6 +66,7 @@ export async function POST(request: NextRequest) {
         "Cache-Control": "no-cache",
         "X-Umbra-Route-Model": decision.model,
         "X-Umbra-Route-Reason": decision.reason,
+        "X-Umbra-Tier-Max-Tokens": String(limits.chatMaxTokens),
       },
     });
   } catch {

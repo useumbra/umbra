@@ -43,6 +43,7 @@ import {
 } from "@/lib/chat-features";
 import { recordUsage, type UsageInput } from "@/lib/usage";
 import type { ProviderMessage } from "@/lib/providers/types";
+import { useHolderLimits } from "@/lib/use-holder-limits";
 import styles from "./ChatClient.module.css";
 const id = () => Math.random().toString(36).slice(2);
 const starterPrompts = [
@@ -59,6 +60,7 @@ const streamCompletion = async ({
   webSearch,
   temperature,
   signal,
+  holderProof,
   onUpdate,
 }: {
   messages: ProviderMessage[];
@@ -67,11 +69,15 @@ const streamCompletion = async ({
   webSearch: boolean;
   temperature: number;
   signal: AbortSignal;
+  holderProof?: string;
   onUpdate: (content: string, citations: Citation[]) => void;
 }) => {
   const response = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(holderProof ? { "x-umbra-holder-proof": holderProof } : {}),
+    },
     body: JSON.stringify({ model, effort, messages, webSearch, temperature }),
     signal,
   });
@@ -171,6 +177,7 @@ const citationHost = (url: string) => {
 };
 
 export function ChatClient() {
+  const { proof } = useHolderLimits();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [active, setActive] = useState<Conversation | null>(null);
   const [mode, setMode] = useState<"smart" | "full" | "off">("smart");
@@ -434,6 +441,7 @@ export function ChatClient() {
           webSearch,
           temperature,
           signal: abortRef.current.signal,
+          holderProof: proof?.proof,
           onUpdate: (content, citations) => {
             assistant.content = restore(content, vault);
             assistant.citations = citations;
