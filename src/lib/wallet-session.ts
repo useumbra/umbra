@@ -68,14 +68,7 @@ export const startWalletDiscovery = (
       info: detail.info,
       provider: detail.provider,
     });
-    onChange([
-      ...Array.from(announced.entries()).map(([id, entry]) => ({
-        id,
-        name: entry.info.name,
-        ...(entry.info.icon ? { icon: entry.info.icon } : {}),
-      })),
-      ...(projectId() ? [{ id: "wc", name: "WalletConnect" }] : []),
-    ]);
+    onChange(optionsFromState());
   };
   window.addEventListener("eip6963:announceProvider", announce);
   window.dispatchEvent(new Event("eip6963:requestProvider"));
@@ -134,6 +127,14 @@ export const resolveWalletProvider = async (
 export const rememberWalletChoice = (id: string): void => {
   try {
     localStorage.setItem("wallet-choice", id);
+  } catch {
+    // Storage can be unavailable in privacy-restricted browsers.
+  }
+};
+
+export const forgetWalletChoice = (): void => {
+  try {
+    localStorage.removeItem("wallet-choice");
   } catch {
     // Storage can be unavailable in privacy-restricted browsers.
   }

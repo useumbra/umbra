@@ -133,12 +133,13 @@ export function CreditsPanel() {
     setWalletBusy(true);
     setWalletMessage("");
     try {
-      await run(async (provider) => {
+      const ran = await run(async (provider) => {
         setWallet(await connectAndReadBalances(provider));
       });
-      setWalletMessage(
-        "Balances loaded. The address is ready for an on-chain USDG top-up.",
-      );
+      if (ran)
+        setWalletMessage(
+          "Balances loaded. The address is ready for an on-chain USDG top-up.",
+        );
     } catch (error) {
       if (error instanceof WalletError) {
         setWalletMessage(error.message);
@@ -225,8 +226,9 @@ export function CreditsPanel() {
     setFundingBusy(true);
     setFundingMessage("");
     setTransactionHash("");
+    setFundingStatus("");
     try {
-      await run(async (provider) => {
+      const ran = await run(async (provider) => {
         if (usdgDecimals === undefined)
           throw new Error("USDG token decimals are still loading.");
         const amount = parseAmount(usdgAmount, usdgDecimals);
@@ -244,6 +246,7 @@ export function CreditsPanel() {
         const receipt = await waitForReceipt(hash);
         await claimVerifiedTransfer(hash, receipt);
       });
+      if (!ran) setFundingStatus("");
     } catch (error) {
       setFundingStatus("Top-up failed");
       setFundingMessage(

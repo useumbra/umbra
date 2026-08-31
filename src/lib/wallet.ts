@@ -177,13 +177,7 @@ const switchToRobinhood = async (provider: Eip1193Provider) => {
       typeof error === "object" && error !== null && "code" in error
         ? error.code
         : undefined;
-    const message = error instanceof Error ? error.message : String(error);
-    const unsupported =
-      code === 4200 ||
-      code === -32601 ||
-      /(not supported|unsupported|not available|does not exist|method not found)/i.test(
-        message,
-      );
+    const unsupported = code === 4200 || code === -32601;
     if (unsupported) {
       try {
         const currentChain = await provider.request({ method: "eth_chainId" });

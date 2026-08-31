@@ -2,25 +2,28 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  forgetWalletChoice,
   lastWalletChoice,
   rememberWalletChoice,
   resolveWalletProvider,
   startWalletDiscovery,
   type WalletOption,
 } from "./wallet-session";
-import type { Eip1193Provider } from "./wallet";
+import { WalletError, type Eip1193Provider } from "./wallet";
 
 export type WalletRunner = {
   options: WalletOption[];
   picking: boolean;
-  run: (action: (provider: Eip1193Provider) => Promise<void>) => Promise<void>;
+  run: (
+    action: (provider: Eip1193Provider) => Promise<void>,
+  ) => Promise<boolean>;
   choose: (id: string) => void;
   cancel: () => void;
 };
 
 type PendingAction = {
   action: (provider: Eip1193Provider) => Promise<void>;
-  resolve: () => void;
+  resolve: (ran: boolean) => void;
   reject: (error: unknown) => void;
 };
 
@@ -34,19 +37,36 @@ export const useWallet = (): WalletRunner => {
 
   const run = useCallback(
     async (action: (provider: Eip1193Provider) => Promise<void>) => {
-      if (providerRef.current) return action(providerRef.current);
+      if (providerRef.current) {
+        await action(providerRef.current);
+        return true;
+      }
       const remembered = lastWalletChoice();
       if (remembered) {
-        const provider = await resolveWalletProvider(remembered);
-        providerRef.current = provider;
-        return action(provider);
+        let provider: Eip1193Provider | undefined;
+        try {
+          provider = await resolveWalletProvider(remembered);
+        } catch {
+          forgetWalletChoice();
+        }
+        if (provider) {
+          providerRef.current = provider;
+          await action(provider);
+          return true;
+        }
       }
+      if (options.length === 0)
+        throw new WalletError(
+          "NO_WALLET",
+          "No compatible wallet was detected.",
+        );
       if (options.length === 1) {
         const provider = await resolveWalletProvider(options[0].id);
         providerRef.current = provider;
-        return action(provider);
+        await action(provider);
+        return true;
       }
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<boolean>((resolve, reject) => {
         pendingRef.current = { action, resolve, reject };
         setPicking(true);
       });
@@ -65,7 +85,7 @@ export const useWallet = (): WalletRunner => {
         setPicking(false);
         if (pending) {
           await pending.action(provider);
-          pending.resolve();
+          pending.resolve(true);
         }
       } catch (error) {
         setPicking(false);
@@ -78,7 +98,7 @@ export const useWallet = (): WalletRunner => {
     const pending = pendingRef.current;
     pendingRef.current = undefined;
     setPicking(false);
-    pending?.resolve();
+    pending?.resolve(false);
   }, []);
 
   return { options, picking, run, choose, cancel };
