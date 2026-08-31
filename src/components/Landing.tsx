@@ -13,6 +13,7 @@ import { Marquee } from "./Marquee";
 import { ModelHub } from "./ModelHub";
 import { ProductShowcase } from "./ProductShowcase";
 import { Reveal } from "./Reveal";
+import { TokenBar } from "./TokenBar";
 import { XIcon } from "./XIcon";
 import { GitHubIcon } from "./GitHubIcon";
 
@@ -299,6 +300,9 @@ export function Landing() {
             </div>
           </section>
         </Reveal>
+        <Reveal className="section">
+          <TokenBar />
+        </Reveal>
         <footer>
           <div className="footer-groups">
             <div className="footer-group">
@@ -325,6 +329,7 @@ export function Landing() {
                 <Link href="/credits">Credits</Link>
                 <Link href="/roadmap">Roadmap</Link>
                 <Link href="/leak-check">Leak check</Link>
+                <Link href="/#token">Token</Link>
               </nav>
             </div>
           </div>

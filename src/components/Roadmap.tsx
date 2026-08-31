@@ -115,9 +115,9 @@ const roadmap = [
         description: "Opt-in sync, never required.",
       },
       {
-        title: "$UMB",
+        title: "$UMBRA utility",
         description:
-          "Subject to technical and legal decisions; not a commitment.",
+          "The token contract is live on Robinhood Chain; holder utility inside Umbra is not built yet.",
       },
     ],
   },

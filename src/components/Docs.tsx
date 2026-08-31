@@ -563,12 +563,13 @@ console.log(completion.choices[0].message.content);`}</pre>
                         <td>Conversations have no public sharing link.</td>
                       </tr>
                       <tr>
-                        <td>$UMB token</td>
+                        <td>$UMBRA token</td>
                         <td>
                           <Status>Planned</Status>
                         </td>
                         <td>
-                          No token utility or transfer flow is implemented.
+                          Contract is live on Robinhood Chain; no token utility
+                          or transfer flow is implemented in the app.
                         </td>
                       </tr>
                       <tr>

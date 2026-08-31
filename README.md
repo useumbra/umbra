@@ -67,6 +67,7 @@ Venice runs as a second provider next to OpenRouter, with pricing, context windo
 - Browser-local encrypted credits vault with a recovery file.
 - Browser-local MCP connectors with manual tool runs and an experimental agentic tool loop capped at three rounds.
 - Read-only Robinhood Chain wallet reads for ETH and USDG.
+- The live $UMBRA contract address on Robinhood Chain is shown on the site.
 - Conversation search, export, and import.
 - `/leak-check` diagnostics.
 - `/docs` and `/roadmap`.
@@ -74,7 +75,7 @@ Venice runs as a second provider next to OpenRouter, with pricing, context windo
 ### What is not done yet
 
 - Unlinkable credits.
-- The `$UMB` token.
+- Holder utility for the `$UMBRA` token.
 - Agentic tool use has not been tested against a real MCP server.
 - Smarter cross-conversation memory.
 - No automated end-to-end browser test suite.
