@@ -9,29 +9,36 @@ const benefits = [
     title: "Credits at a holder rate",
     description:
       "Convert $UMBRA into Umbra credits, which stay encrypted in your browser.",
+    status: "planned",
   },
   {
     title: "Higher limits",
     description:
-      "Longer UmbraCode sandbox runs and more Council seats per brief.",
+      "A signed proof raises Council seats to 5 and the max-token ceiling in chat and UmbraCode.",
+    status: "live",
   },
   {
     title: "Priority routing",
-    description: "Holder requests move ahead in the queue on premium models.",
+    description:
+      "Congested premium models are retried for holders, and Circle and Council auto-route to a stronger model.",
+    status: "live",
   },
   {
     title: "API quota",
     description:
       "A holder quota on the OpenAI-compatible endpoint, keys managed at /developers.",
+    status: "live",
   },
   {
     title: "Early access",
     description: "New surfaces open to holders before general release.",
+    status: "planned",
   },
   {
     title: "A vote on the boundary",
     description:
       "Holders vote on which providers get added and which detectors ship next.",
+    status: "planned",
   },
 ] as const;
 
@@ -53,8 +60,8 @@ export function TokenBar() {
       <div className="eyebrow">Token</div>
       <h2>{brand.token.ticker}</h2>
       <p className={styles.copy}>
-        The contract is live on Robinhood Chain. Holder utility inside Umbra is
-        not shipped yet.
+        The contract is live on Robinhood Chain. Some holder utility is enforced
+        today; the rest is on the roadmap.
       </p>
       <div className={styles.addressRow}>
         <code>{brand.token.address}</code>
@@ -82,13 +89,25 @@ export function TokenBar() {
       </p>
       <div className={styles.benefits}>
         <div className={styles.benefitsHead}>
-          <h3>Planned for holders</h3>
-          <span className={styles.badge}>Not shipped yet</span>
+          <h3>Holder benefits</h3>
+          <span className={styles.badge}>
+            {benefits.filter((benefit) => benefit.status === "live").length} of{" "}
+            {benefits.length} live
+          </span>
         </div>
         <ul className={styles.list}>
           {benefits.map((benefit) => (
             <li key={benefit.title}>
-              <strong>{benefit.title}</strong>
+              <div className={styles.benefitTop}>
+                <strong>{benefit.title}</strong>
+                <span
+                  className={`${styles.status} ${
+                    benefit.status === "live" ? styles.statusLive : ""
+                  }`}
+                >
+                  {benefit.status === "live" ? "Live" : "Planned"}
+                </span>
+              </div>
               <span>{benefit.description}</span>
             </li>
           ))}

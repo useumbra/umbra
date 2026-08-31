@@ -11,7 +11,11 @@ const findModel = (
   fallback: ModelConfig,
 ) => models.find(predicate) ?? fallback;
 
-export const route = (prompt: string, models: ModelConfig[]): RouteDecision => {
+export const route = (
+  prompt: string,
+  models: ModelConfig[],
+  options?: { upgradeGeneralRoute?: boolean },
+): RouteDecision => {
   const available = models.filter((model) => model.id !== "umbra-auto");
   const fallback =
     available.find((model) => model.id === "nova-4") ??
@@ -75,6 +79,15 @@ export const route = (prompt: string, models: ModelConfig[]): RouteDecision => {
       reason: "prompt length requires the largest available context window",
     };
   }
+
+  if (
+    options?.upgradeGeneralRoute &&
+    available.some((model) => model.id === "sage-sonnet")
+  )
+    return {
+      model: "sage-sonnet",
+      reason: "general prompt upgraded by your $UMBRA tier",
+    };
 
   return {
     model: fallback.id,

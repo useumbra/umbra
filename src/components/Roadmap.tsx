@@ -104,6 +104,11 @@ const roadmap = [
         description:
           "A signed holder proof raises Council seats and the max-token ceiling in chat and UmbraCode.",
       },
+      {
+        title: "Holder priority routing",
+        description:
+          "A signed holder proof retries congested premium models and upgrades the auto route for Circle and Council.",
+      },
     ],
   },
   {
@@ -129,10 +134,6 @@ const roadmap = [
         title: "$UMBRA credits",
         description:
           "Convert held $UMBRA into browser-side credits at a holder rate.",
-      },
-      {
-        title: "Holder priority routing",
-        description: "Priority routing on premium models remains planned.",
       },
       {
         title: "Holder votes",

@@ -19,6 +19,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Chat requests now route and retry according to the $UMBRA tier.
 - On-chain reads fail over to a second public Robinhood Chain RPC.
 - Venice models are hidden without `VENICE_API_KEY` and never fall back to another provider.
 - Reasoning-capable Venice models default to `reasoning_effort: none` so answers are not returned empty.

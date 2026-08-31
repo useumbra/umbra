@@ -113,6 +113,13 @@
   border-radius: 7px;
 }
 
+.benefitTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .list strong {
   font-size: 13px;
 }
@@ -121,6 +128,23 @@
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.list .status {
+  flex-shrink: 0;
+  padding: 2px 5px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.list .statusLive {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
 }
 
 .note {

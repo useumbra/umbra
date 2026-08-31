@@ -1,6 +1,7 @@
 import type { Provider, ProviderMessage, ProviderOptions } from "./types";
 import { models } from "../../config/models";
 import { brand } from "../../config/brand";
+import { UpstreamError } from "./upstream";
 export class OpenRouterProvider implements Provider {
   async stream(
     messages: ProviderMessage[],
@@ -39,7 +40,9 @@ export class OpenRouterProvider implements Provider {
         }),
       },
     );
-    if (!response.ok || !response.body) throw new Error("Provider unavailable");
+    if (!response.ok)
+      throw new UpstreamError(response.status, "Provider unavailable");
+    if (!response.body) throw new UpstreamError(502, "Provider unavailable");
     return response.body;
   }
 }

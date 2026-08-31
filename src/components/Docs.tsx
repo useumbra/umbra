@@ -617,6 +617,18 @@ console.log(completion.choices[0].message.content);`}</pre>
                         </td>
                       </tr>
                       <tr>
+                        <td>Holder priority routing</td>
+                        <td>
+                          <Status>Live</Status>
+                        </td>
+                        <td>
+                          Signed holder proofs retry congested premium models
+                          and upgrade the automatic route for Circle and
+                          Council. The chat response reports the configured
+                          retry allowance in <code>X-Umbra-Tier-Retries</code>.
+                        </td>
+                      </tr>
+                      <tr>
                         <td>$UMBRA token</td>
                         <td>
                           <Status>Planned</Status>

@@ -5,6 +5,7 @@ import type {
   ProviderOptions,
   ReasoningEffort,
 } from "./types";
+import { UpstreamError } from "./upstream";
 
 const mapReasoningEffort = (
   effort: ReasoningEffort,
@@ -63,7 +64,9 @@ export class VeniceProvider implements Provider {
         }),
       },
     );
-    if (!response.ok || !response.body) throw new Error("Provider unavailable");
+    if (!response.ok)
+      throw new UpstreamError(response.status, "Provider unavailable");
+    if (!response.body) throw new UpstreamError(502, "Provider unavailable");
     return response.body;
   }
 }

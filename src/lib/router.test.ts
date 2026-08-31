@@ -26,4 +26,24 @@ describe("umbra-auto routing", () => {
     expect(decision.model).toBe("nova-4");
     expect(decision.reason).toMatch(/everyday/i);
   });
+
+  it("upgrades a general prompt when the holder tier allows it", () => {
+    expect(
+      route("Give me three dinner ideas.", models, {
+        upgradeGeneralRoute: true,
+      }),
+    ).toEqual({
+      model: "sage-sonnet",
+      reason: "general prompt upgraded by your $UMBRA tier",
+    });
+    expect(route("Give me three dinner ideas.", models).model).toBe("nova-4");
+  });
+
+  it("keeps code routing ahead of a general route upgrade", () => {
+    expect(
+      route("Fix this Python function.", models, {
+        upgradeGeneralRoute: true,
+      }).model,
+    ).toBe("qwen-coder");
+  });
 });
