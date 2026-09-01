@@ -16,7 +16,6 @@ export const polls: Poll[] = [
     id: "detector",
     question: "Which redaction detector ships next?",
     options: [
-      { id: "nik", label: "Indonesian NIK and KTP numbers" },
       { id: "iban", label: "IBAN and bank account numbers" },
       { id: "medical", label: "Medical record numbers" },
       { id: "diff", label: "Secrets inside pasted diffs" },
