@@ -18,6 +18,11 @@
 /.open-next/
 /.wrangler/
 /out/
+/contracts/out/
+/contracts/cache/
+/cache_forge/
+/contracts/lib/*
+!/contracts/lib/forge-std/
 public/pdf.min.mjs
 public/pdf.worker.min.mjs
 
