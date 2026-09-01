@@ -145,6 +145,11 @@ const roadmap = [
         title: "Optional accounts",
         description: "Opt-in sync, never required.",
       },
+      {
+        title: "On-chain staking",
+        description:
+          "Stake $UMBRA for treasury-funded $UMBRA rewards after the unaudited contract is deployed.",
+      },
     ],
   },
 ] as const;

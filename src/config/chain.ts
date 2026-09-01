@@ -3,6 +3,11 @@ const treasury =
   configuredTreasury && /^0x[0-9a-fA-F]{40}$/.test(configuredTreasury)
     ? configuredTreasury
     : undefined;
+const configuredStaking = process.env.NEXT_PUBLIC_UMBRA_STAKING;
+const staking =
+  configuredStaking && /^0x[0-9a-fA-F]{40}$/.test(configuredStaking)
+    ? configuredStaking
+    : undefined;
 
 export const chainNetworks = {
   mainnet: {
@@ -15,6 +20,7 @@ export const chainNetworks = {
     stack: "Arbitrum Orbit L2",
     usdG: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
     treasury,
+    staking,
   },
   testnet: {
     name: "Robinhood Chain Testnet",

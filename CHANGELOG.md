@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Verified holder tiers now raise Council, chat, and UmbraCode capacity limits.
 - Verified holder proofs now add holder-rate credits to eligible USDG top-ups.
 - Verified holders can now use early access and weighted advisory votes.
+- The unaudited $UMBRA staking page and contract integration are ready pending deployment.
 - Browser-local memory suggestions and voice dictation/read-aloud controls are now available.
 
 ### Changed

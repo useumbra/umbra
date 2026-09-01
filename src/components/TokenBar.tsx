@@ -41,6 +41,12 @@ const benefits = [
       "Advisory votes are weighted by tier (Holder 1×, Circle 3×, Council 10×), with one wallet vote per poll.",
     status: "live",
   },
+  {
+    title: "On-chain staking",
+    description:
+      "Treasury-funded $UMBRA rewards are planned; the contract is written and tested but pending deployment.",
+    status: "planned",
+  },
 ] as const;
 
 export function TokenBar() {
@@ -61,8 +67,8 @@ export function TokenBar() {
       <div className="eyebrow">Token</div>
       <h2>{brand.token.ticker}</h2>
       <p className={styles.copy}>
-        The contract is live on Robinhood Chain, and all six listed holder
-        benefits are live today.
+        The token contract is live on Robinhood Chain. Six holder benefits are
+        live today; on-chain staking is pending deployment.
       </p>
       <div className={styles.addressRow}>
         <code>{brand.token.address}</code>

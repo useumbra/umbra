@@ -31,6 +31,7 @@ export function Header() {
     ["/credits", "Credits"],
     ["/developers", "Get an API key"],
     ["/vote", "Vote"],
+    ["/stake", "Stake"],
     ["/roadmap", "Roadmap"],
     [brand.appPath, "Launch Umbra"],
   ] as const;

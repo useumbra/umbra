@@ -139,6 +139,9 @@ const rpcCall = async (method: string, params: unknown[]) => {
   return result.result;
 };
 
+export const readCall = (to: string, data: string) =>
+  rpcCall("eth_call", [{ to, data }, "latest"]);
+
 const rpcCallValue = async <T>(method: string, params: unknown[]) => {
   const result = await rpcRequest<T | null>(method, params);
   if (result.error) throw new UpstreamError(502, rpcError(result.error));
@@ -278,10 +281,7 @@ export const readTokenBalance = async (
   token: string,
   address: string,
 ): Promise<bigint> => {
-  const balanceHex = await rpcCall("eth_call", [
-    { to: token, data: encodeBalanceOf(address) },
-    "latest",
-  ]);
+  const balanceHex = await readCall(token, encodeBalanceOf(address));
   return hexToBigInt(balanceHex);
 };
 
@@ -295,13 +295,17 @@ export const connectAddress = async (
   return address;
 };
 
-export const sendUsdgTransfer = async (
+export const sendContractTx = async (
   provider: Eip1193Provider | undefined,
-  { from, to, amount }: { from: string; to: string; amount: bigint },
+  {
+    from,
+    to,
+    data,
+    rejectedMessage,
+  }: { from: string; to: string; data: string; rejectedMessage: string },
 ): Promise<string> => {
   if (!provider)
     throw new WalletError("NO_WALLET", "No compatible wallet was detected.");
-  const data = encodeErc20Transfer(to, amount);
   if (!/^0x[0-9a-f]{40}$/i.test(from))
     throw new WalletError(
       "NO_WALLET",
@@ -314,7 +318,7 @@ export const sendUsdgTransfer = async (
       params: [
         {
           from,
-          to: chainNetworks.mainnet.usdG,
+          to,
           data,
         },
       ],
@@ -332,7 +336,7 @@ export const sendUsdgTransfer = async (
       "code" in error &&
       error.code === 4001
     )
-      throw new WalletError("USER_REJECTED", "USDG transfer was rejected.");
+      throw new WalletError("USER_REJECTED", rejectedMessage);
     if (error instanceof WalletError) throw error;
     throw new WalletError(
       "RPC_ERROR",
@@ -367,6 +371,17 @@ export const waitForReceipt = async (
     "Timed out waiting for confirmation. The transaction may still confirm and can be claimed later by hash.",
   );
 };
+
+export const sendUsdgTransfer = async (
+  provider: Eip1193Provider | undefined,
+  { from, to, amount }: { from: string; to: string; amount: bigint },
+): Promise<string> =>
+  sendContractTx(provider, {
+    from,
+    to: chainNetworks.mainnet.usdG,
+    data: encodeErc20Transfer(to, amount),
+    rejectedMessage: "USDG transfer was rejected.",
+  });
 
 export const connectAndReadBalances = async (
   provider: Eip1193Provider | undefined,
