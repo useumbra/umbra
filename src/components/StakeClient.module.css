@@ -164,6 +164,13 @@
   padding: 6px 10px;
 }
 
+.statsNote {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .period {
   display: grid;
   gap: 7px;

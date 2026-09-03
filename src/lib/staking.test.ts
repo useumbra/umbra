@@ -12,10 +12,13 @@ import {
   STAKE_SELECTOR,
   TOTAL_STAKED_SELECTOR,
   WITHDRAW_SELECTOR,
+  annualRewardBps,
+  aprToApy,
   encodeAddressCall,
   encodeAllowance,
   encodeAmountCall,
   encodeApprove,
+  formatApr,
 } from "./staking";
 import { sendContractTx, WalletError, type Eip1193Provider } from "./wallet";
 
@@ -24,6 +27,30 @@ const spender = "0x2222222222222222222222222222222222222222";
 const word = (value: string) => value.padStart(64, "0");
 
 describe("staking helpers", () => {
+  it("calculates annualized rewards only during an active funded period", () => {
+    expect(
+      annualRewardBps(BigInt(1), BigInt(0), BigInt(2_000), BigInt(1_000)),
+    ).toBeUndefined();
+    expect(
+      annualRewardBps(BigInt(1), BigInt(1), BigInt(1_000), BigInt(1_000)),
+    ).toBeUndefined();
+
+    const rewardRate = BigInt("50218167388553342779");
+    const totalStaked = BigInt(1_000_000) * BigInt(10) ** BigInt(18);
+    expect(
+      annualRewardBps(rewardRate, totalStaked, BigInt(2_000), BigInt(1_000)),
+    ).toBe(BigInt(15_836_801));
+  });
+
+  it("formats APR and compounded APY for display", () => {
+    expect(formatApr(BigInt(12_345))).toBe("123.45%");
+    expect(formatApr(BigInt(1_234_567))).toBe("12,345.67%");
+    expect(formatApr(BigInt(10_000_000))).toBe(">100,000%");
+    expect(aprToApy(BigInt(0))).toBe("0.00%");
+    expect(aprToApy(BigInt(10_000))).toBe("171.46%");
+    expect(aprToApy(BigInt(10_000_000))).toBe(">100,000%");
+  });
+
   it("encodes every staking call selector and argument", () => {
     expect(encodeAmountCall(STAKE_SELECTOR, BigInt(1))).toBe(
       `0xa694fc3a${word("1")}`,

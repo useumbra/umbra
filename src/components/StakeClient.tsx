@@ -9,6 +9,9 @@ import {
   emergencyWithdraw,
   exit,
   getReward,
+  annualRewardBps,
+  aprToApy,
+  formatApr,
   readStakingSnapshot,
   stake,
   withdraw,
@@ -189,9 +192,21 @@ export function StakeClient() {
   };
 
   const explorerUrl = `${chainNetworks.mainnet.explorer}/address/${staking}`;
+  const nowSeconds = BigInt(Math.floor(Date.now() / 1000));
   const periodActive =
-    snapshot !== undefined &&
-    snapshot.periodFinish > BigInt(Math.floor(Date.now() / 1000));
+    snapshot !== undefined && snapshot.periodFinish > nowSeconds;
+  const currentAprBps =
+    snapshot &&
+    annualRewardBps(
+      snapshot.rewardRate,
+      snapshot.totalStaked,
+      snapshot.periodFinish,
+      nowSeconds,
+    );
+  const currentApr =
+    currentAprBps === undefined ? "—" : formatApr(currentAprBps);
+  const currentApy =
+    currentAprBps === undefined ? "—" : aprToApy(currentAprBps);
   const periodLabel =
     snapshot && periodActive
       ? `Streaming until ${new Date(Number(snapshot.periodFinish) * 1000).toLocaleString()}`
@@ -257,6 +272,14 @@ export function StakeClient() {
                   <span>Pool staked</span>
                   <strong>{formatToken(snapshot.totalStaked)} $UMBRA</strong>
                 </div>
+                <div>
+                  <span>Current APR</span>
+                  <strong>{currentApr}</strong>
+                </div>
+                <div>
+                  <span>Est. APY</span>
+                  <strong>{currentApy}</strong>
+                </div>
               </div>
               <button
                 className={styles.secondaryButton}
@@ -275,7 +298,16 @@ export function StakeClient() {
                   Rate: {formatToken(snapshot.rewardRate)} $UMBRA per second
                 </small>
               )}
+              {periodActive && snapshot.totalStaked === BigInt(0) && (
+                <small>
+                  No stake yet — the first staker earns the full stream.
+                </small>
+              )}
             </div>
+            <p className={styles.statsNote}>
+              APR is derived live from the on-chain reward rate and pool size;
+              it changes with every stake and ends with the reward period.
+            </p>
             <label className={styles.amountLabel} htmlFor="stake-amount">
               Amount in $UMBRA
             </label>

@@ -41,6 +41,39 @@ const encodeAddressWord = (address: string) => {
   return address.slice(2).toLowerCase().padStart(64, "0");
 };
 
+const MAX_DISPLAY_BPS = BigInt(10_000_000);
+
+const groupInteger = (value: bigint) =>
+  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+export const annualRewardBps = (
+  rewardRate: bigint,
+  totalStaked: bigint,
+  periodFinish: bigint,
+  nowSeconds: bigint,
+): bigint | undefined => {
+  if (totalStaked === BigInt(0) || periodFinish <= nowSeconds) return undefined;
+  return (rewardRate * BigInt(31_536_000) * BigInt(10_000)) / totalStaked;
+};
+
+export const formatApr = (bps: bigint): string => {
+  if (bps >= MAX_DISPLAY_BPS) return ">100,000%";
+  const sign = bps < BigInt(0) ? "-" : "";
+  const absolute = bps < BigInt(0) ? -bps : bps;
+  const whole = absolute / BigInt(100);
+  const fraction = (absolute % BigInt(100)).toString().padStart(2, "0");
+  return `${sign}${groupInteger(whole)}.${fraction}%`;
+};
+
+export const aprToApy = (bps: bigint): string => {
+  if (bps >= MAX_DISPLAY_BPS) return ">100,000%";
+  const apr = Number(bps) / 10_000;
+  const apyBps = (Math.pow(1 + apr / 365, 365) - 1) * 10_000;
+  if (!Number.isFinite(apyBps) || apyBps >= Number(MAX_DISPLAY_BPS))
+    return ">100,000%";
+  return formatApr(BigInt(Math.round(apyBps)));
+};
+
 export const encodeAmountCall = (selector: string, amount: bigint) =>
   `${normalizeSelector(selector)}${encodeWord(amount)}`;
 
