@@ -78,7 +78,7 @@ const roadmap = [
       {
         title: "On-chain staking",
         description:
-          "Stake $UMBRA on Robinhood Chain for treasury-funded $UMBRA rewards; nothing is minted, with no APY promise.",
+          "Stake $UMBRA on Robinhood Chain for treasury-funded $UMBRA rewards; nothing is minted, there is no APY promise, and the contract is unaudited.",
       },
       {
         title: "Docs",
