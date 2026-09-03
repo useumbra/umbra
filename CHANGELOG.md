@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Verified holder proofs now add holder-rate credits to eligible USDG top-ups.
 - Verified holders can now use early access and weighted advisory votes.
 - The unaudited $UMBRA staking contract is deployed at `0x7065B7082B88b678f07E41228CB914A167DfA363`, and the staking page is configured for it.
+- Added the fixed-term lock staking interface and contract integration path for 30, 90, and 180-day positions; the lock contract is not deployed yet.
 - Browser-local memory suggestions and voice dictation/read-aloud controls are now available.
 
 ### Changed

@@ -8,6 +8,11 @@ const staking =
   configuredStaking && /^0x[0-9a-fA-F]{40}$/.test(configuredStaking)
     ? configuredStaking
     : undefined;
+const configuredLockStaking = process.env.NEXT_PUBLIC_UMBRA_LOCK_STAKING;
+const lockStaking =
+  configuredLockStaking && /^0x[0-9a-fA-F]{40}$/.test(configuredLockStaking)
+    ? configuredLockStaking
+    : undefined;
 
 export const chainNetworks = {
   mainnet: {
@@ -21,6 +26,7 @@ export const chainNetworks = {
     usdG: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
     treasury,
     staking,
+    lockStaking,
   },
   testnet: {
     name: "Robinhood Chain Testnet",

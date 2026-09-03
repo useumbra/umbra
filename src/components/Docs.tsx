@@ -657,6 +657,17 @@ console.log(completion.choices[0].message.content);`}</pre>
                         </td>
                       </tr>
                       <tr>
+                        <td>Fixed-term lock staking</td>
+                        <td>
+                          <Status>Not implemented</Status>
+                        </td>
+                        <td>
+                          The 30, 90, and 180-day lock contract is written and
+                          tested but not deployed yet. Rates are fixed and
+                          rewards come from a pre-funded pool.
+                        </td>
+                      </tr>
+                      <tr>
                         <td>Agentic MCP tool use</td>
                         <td>
                           <Status>Experimental</Status>

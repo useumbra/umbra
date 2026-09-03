@@ -28,7 +28,7 @@ const normalizeSelector = (selector: string) => {
   return selector.toLowerCase();
 };
 
-const encodeWord = (amount: bigint) => {
+export const encodeWord = (amount: bigint) => {
   if (amount < BigInt(0)) throw new Error("Transfer amount cannot be negative");
   const encoded = amount.toString(16);
   if (encoded.length > 64) throw new Error("Transfer amount is too large");
@@ -96,7 +96,8 @@ export type StakingSnapshot = {
   rewardRate: bigint;
 };
 
-const encodeNoArgCall = (selector: string) => normalizeSelector(selector);
+export const encodeNoArgCall = (selector: string) =>
+  normalizeSelector(selector);
 
 export const readStakingSnapshot = async (
   staking: string,

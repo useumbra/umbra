@@ -44,7 +44,7 @@ const benefits = [
   {
     title: "On-chain staking",
     description:
-      "Stake $UMBRA on Robinhood Chain and claim treasury-funded $UMBRA rewards — nothing minted, no APY promise, unaudited contract.",
+      "Lock $UMBRA for 30, 90 or 180 days at a fixed rate, paid from a pre-funded pool — nothing minted, unaudited contract.",
     status: "live",
   },
 ] as const;
