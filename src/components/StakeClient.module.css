@@ -120,14 +120,22 @@
   line-height: 1.6;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.statsRow {
+  display: flex;
+  align-items: start;
   gap: 10px;
   padding: 20px 0;
   margin-top: 24px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+}
+
+.stats {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
 }
 
 .stats div {
@@ -148,6 +156,12 @@
 .stats strong {
   overflow-wrap: anywhere;
   font-size: 15px;
+}
+
+.statsRow > .secondaryButton {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 6px 10px;
 }
 
 .period {
@@ -277,8 +291,16 @@
     font-size: 52px;
   }
 
+  .statsRow {
+    display: grid;
+  }
+
   .stats {
     grid-template-columns: 1fr;
+  }
+
+  .statsRow > .secondaryButton {
+    width: 100%;
   }
 
   .actions {

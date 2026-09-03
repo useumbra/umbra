@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { brand } from "@/config/brand";
 import { chainNetworks } from "@/config/chain";
 import {
@@ -30,7 +30,14 @@ const staking = chainNetworks.mainnet.staking;
 const token = brand.token.address;
 
 type ActionName =
-  "connect" | "approve" | "stake" | "withdraw" | "claim" | "exit" | "emergency";
+  | "connect"
+  | "refresh"
+  | "approve"
+  | "stake"
+  | "withdraw"
+  | "claim"
+  | "exit"
+  | "emergency";
 
 const formatToken = (value: bigint) =>
   formatUnits(value, brand.token.decimals, 6);
@@ -43,6 +50,29 @@ export function StakeClient() {
   const [error, setError] = useState("");
   const [confirmEmergency, setConfirmEmergency] = useState(false);
   const { options, picking, run, choose, cancel } = useWallet();
+
+  const parsedAmount = (() => {
+    try {
+      return parseAmount(amount, brand.token.decimals);
+    } catch {
+      return undefined;
+    }
+  })();
+
+  const refresh = useCallback(async (walletAddress: string) => {
+    if (!staking) return undefined;
+    const next = await readStakingSnapshot(staking, token, walletAddress);
+    setSnapshot(next);
+    return next;
+  }, []);
+
+  useEffect(() => {
+    if (!staking || !address) return;
+    const interval = window.setInterval(() => {
+      if (!busy) void refresh(address).catch(() => undefined);
+    }, 15_000);
+    return () => window.clearInterval(interval);
+  }, [address, busy, refresh]);
 
   if (!staking) {
     return (
@@ -71,18 +101,6 @@ export function StakeClient() {
       </main>
     );
   }
-
-  const parsedAmount = (() => {
-    try {
-      return parseAmount(amount, brand.token.decimals);
-    } catch {
-      return undefined;
-    }
-  })();
-
-  const refresh = async (walletAddress: string) => {
-    setSnapshot(await readStakingSnapshot(staking, token, walletAddress));
-  };
 
   const connect = async () => {
     setBusy("connect");
@@ -124,11 +142,41 @@ export function StakeClient() {
       });
       if (!ran) setError("");
     } catch (caught) {
-      setError(
-        caught instanceof WalletError || caught instanceof Error
-          ? caught.message
-          : "The staking transaction could not be completed.",
-      );
+      let refreshed: StakingSnapshot | undefined;
+      if (address) {
+        try {
+          refreshed = await refresh(address);
+        } catch {
+          refreshed = undefined;
+        }
+      }
+      if (
+        name === "approve" &&
+        refreshed &&
+        parsedAmount !== undefined &&
+        refreshed.allowance >= parsedAmount
+      ) {
+        setError("");
+      } else {
+        setError(
+          caught instanceof WalletError || caught instanceof Error
+            ? caught.message
+            : "The staking transaction could not be completed.",
+        );
+      }
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  const manualRefresh = async () => {
+    if (!address) return;
+    setBusy("refresh");
+    setError("");
+    try {
+      await refresh(address);
+    } catch {
+      setError("");
     } finally {
       setBusy(undefined);
     }
@@ -191,23 +239,33 @@ export function StakeClient() {
         )}
         {address && snapshot && (
           <>
-            <div className={styles.stats}>
-              <div>
-                <span>Wallet balance</span>
-                <strong>{formatToken(snapshot.walletBalance)} $UMBRA</strong>
+            <div className={styles.statsRow}>
+              <div className={styles.stats}>
+                <div>
+                  <span>Wallet balance</span>
+                  <strong>{formatToken(snapshot.walletBalance)} $UMBRA</strong>
+                </div>
+                <div>
+                  <span>Your stake</span>
+                  <strong>{formatToken(snapshot.staked)} $UMBRA</strong>
+                </div>
+                <div>
+                  <span>Claimable rewards</span>
+                  <strong>{formatToken(snapshot.earned)} $UMBRA</strong>
+                </div>
+                <div>
+                  <span>Pool staked</span>
+                  <strong>{formatToken(snapshot.totalStaked)} $UMBRA</strong>
+                </div>
               </div>
-              <div>
-                <span>Your stake</span>
-                <strong>{formatToken(snapshot.staked)} $UMBRA</strong>
-              </div>
-              <div>
-                <span>Claimable rewards</span>
-                <strong>{formatToken(snapshot.earned)} $UMBRA</strong>
-              </div>
-              <div>
-                <span>Pool staked</span>
-                <strong>{formatToken(snapshot.totalStaked)} $UMBRA</strong>
-              </div>
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                disabled={busy !== undefined}
+                onClick={() => void manualRefresh()}
+              >
+                {busy === "refresh" ? "Refreshing…" : "Refresh"}
+              </button>
             </div>
             <div className={styles.period}>
               <span>Reward period</span>
@@ -231,8 +289,8 @@ export function StakeClient() {
               aria-describedby="stake-amount-note"
             />
             <p id="stake-amount-note" className={styles.helper}>
-              Amounts use 18 decimals. Approve the token contract once before
-              staking a new amount.
+              Amounts use 18 decimals. Approve once, then the Stake button
+              appears when the allowance covers the amount.
             </p>
             <div className={styles.actions}>
               {parsedAmount && snapshot.allowance < parsedAmount && (
