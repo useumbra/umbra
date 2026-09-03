@@ -13,6 +13,35 @@ forge build
 forge test -vv
 ```
 
+## UmbraLockStaking
+
+`UmbraLockStaking.sol` is a fixed-term, fixed-APR lock contract for `$UMBRA`.
+It is not deployed yet. The three lock tiers are 30 days at 40% APR, 90 days
+at 80% APR, and 180 days at 150% APR. Rewards are reserved from a
+pre-funded pool when a position opens; the contract never mints rewards.
+
+Build and test it from the repository root:
+
+```bash
+forge build
+forge test -vv
+```
+
+The deployment script reads `UMBRA_TOKEN` and `STAKING_OWNER` and does not
+broadcast unless Foundry is explicitly run with `--broadcast`:
+
+```bash
+export UMBRA_TOKEN=0xYourUmbraTokenAddress
+export STAKING_OWNER=0xYourOwnerAddress
+forge script contracts/script/DeployUmbraLockStaking.s.sol:DeployUmbraLockStaking \
+  --rpc-url https://rpc.mainnet.chain.robinhood.com \
+  --chain-id 4663 \
+  --private-key "$PRIVATE_KEY"
+```
+
+The contract is unaudited; obtain an independent security review before
+funding or deploying it.
+
 ## Deployment
 
 The contract is deployed on Robinhood Chain at
