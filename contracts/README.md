@@ -13,6 +13,17 @@ forge build
 forge test -vv
 ```
 
+## Deployment
+
+The contract is deployed on Robinhood Chain at
+`0x7065B7082B88b678f07E41228CB914A167DfA363`.
+
+- Transaction:
+  `0xc93209a34ac3037554ff3fe57419cda2ba5bde2ebff19d92328f1428cd469d5d`
+- Owner: `0xf12aA9a565faFB6E7eaa6cA596063121Bc3492dA`
+- Explorer:
+  https://robinhoodchain.blockscout.com/address/0x7065B7082B88b678f07E41228CB914A167DfA363
+
 ## Deploy
 
 Set the deployer key in Foundry's usual `PRIVATE_KEY` environment variable,

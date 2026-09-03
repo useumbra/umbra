@@ -44,8 +44,8 @@ const benefits = [
   {
     title: "On-chain staking",
     description:
-      "Treasury-funded $UMBRA rewards are planned; the contract is written and tested but pending deployment.",
-    status: "planned",
+      "Stake $UMBRA on Robinhood Chain and claim treasury-funded $UMBRA rewards — nothing minted, no APY promise, unaudited contract.",
+    status: "live",
   },
 ] as const;
 
@@ -67,8 +67,8 @@ export function TokenBar() {
       <div className="eyebrow">Token</div>
       <h2>{brand.token.ticker}</h2>
       <p className={styles.copy}>
-        The token contract is live on Robinhood Chain. Six holder benefits are
-        live today; on-chain staking is pending deployment.
+        The token contract is live on Robinhood Chain, and all seven holder
+        benefits are live today.
       </p>
       <div className={styles.addressRow}>
         <code>{brand.token.address}</code>

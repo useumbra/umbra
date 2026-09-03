@@ -76,6 +76,11 @@ const roadmap = [
         description: "Read-only ETH and USDG balances on Robinhood Chain.",
       },
       {
+        title: "On-chain staking",
+        description:
+          "Stake $UMBRA on Robinhood Chain for treasury-funded $UMBRA rewards; nothing is minted, with no APY promise.",
+      },
+      {
         title: "Docs",
         description: "How each surface works and where it runs.",
       },
@@ -144,11 +149,6 @@ const roadmap = [
       {
         title: "Optional accounts",
         description: "Opt-in sync, never required.",
-      },
-      {
-        title: "On-chain staking",
-        description:
-          "Stake $UMBRA for treasury-funded $UMBRA rewards after the unaudited contract is deployed.",
       },
     ],
   },
